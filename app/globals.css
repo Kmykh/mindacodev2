@@ -1,0 +1,665 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== LENIS SMOOTH SCROLL =====
+   Recommended styles to keep overflow handling correct and avoid
+   iOS double-scroll quirks. */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --accent-rgb: 123, 91, 255;
+    --accent-soft-rgb: 92, 208, 255;
+    --gold-rgb: 255, 196, 87;
+    --surface-0: #05030f;
+    --surface-1: #0a0819;
+    --surface-2: #120d26;
+    --surface-3: #1a1433;
+    /* Height of the top offer bar. Updated by <OfferBar />; 0 when hidden. */
+    --offer-bar-h: 0px;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  /* Push page content below the top offer bar when present. */
+  body {
+    padding-top: var(--offer-bar-h, 0px);
+    transition: padding-top 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(123, 91, 255, 0.25) transparent;
+  }
+
+  *::-webkit-scrollbar { width: 6px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(123, 91, 255, 0.25);
+    border-radius: 3px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(123, 91, 255, 0.4);
+  }
+
+  body {
+    @apply min-h-screen font-sans text-foreground;
+    background: transparent;
+    letter-spacing: -0.005em;
+  }
+
+  /* Keep headings compact without drifting away from the brand font. */
+  h1, h2, h3, h4 {
+    letter-spacing: -0.025em;
+  }
+
+  ::selection {
+    background-color: #7b5bff;
+    color: #05030f;
+  }
+}
+
+/* ===== GLOBAL SPACE / UNIVERSE BACKGROUND =====
+   The animated sun + deep-space backdrop are rendered by
+   <CosmicSun /> (components/ui/cosmic-sun.tsx) using SVG filters.
+   Here we only add the twinkling starfield layers that sit over it
+   plus the occasional shooting star. */
+
+html {
+  background-color: #01000a;
+  background-image: radial-gradient(ellipse 120% 120% at 50% 50%, #070318 0%, #03010e 55%, #01000a 100%);
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: clip;
+}
+
+/* Starfield — near layer (brighter, drifts faster). */
+.cosmic-stars {
+  pointer-events: none;
+  background-image:
+    radial-gradient(6px 6px at 20px 30px,   rgba(255,255,255,1),    transparent 60%),
+    radial-gradient(5.2px 5.2px at 140px 80px,  rgba(255,255,255,1),    transparent 60%),
+    radial-gradient(4.6px 4.6px at 280px 50px,  rgba(220,220,255,0.95), transparent 60%),
+    radial-gradient(6.6px 6.6px at 340px 180px, rgba(255,240,230,1),    transparent 60%),
+    radial-gradient(4.6px 4.6px at 400px 280px, rgba(255,255,255,0.95), transparent 60%),
+    radial-gradient(5.2px 5.2px at 450px 90px,  rgba(210,220,255,0.95), transparent 60%),
+    radial-gradient(4.6px 4.6px at 600px 40px,  rgba(200,210,255,1),    transparent 60%),
+    radial-gradient(6.6px 6.6px at 700px 300px, rgba(255,255,255,1),    transparent 60%),
+    radial-gradient(5.2px 5.2px at 820px 160px, rgba(255,230,200,0.95), transparent 60%),
+    radial-gradient(4.6px 4.6px at 960px 380px, rgba(220,220,255,0.95), transparent 60%),
+    radial-gradient(4px 4px at 60px 120px,  rgba(255,255,255,0.85), transparent 60%),
+    radial-gradient(4px 4px at 200px 200px, rgba(200,200,255,0.8),  transparent 60%),
+    radial-gradient(4px 4px at 80px 250px,  rgba(255,255,255,0.8),  transparent 60%),
+    radial-gradient(4px 4px at 520px 220px, rgba(255,255,255,0.75), transparent 60%),
+    radial-gradient(4px 4px at 150px 350px, rgba(255,255,255,0.8),  transparent 60%),
+    radial-gradient(4px 4px at 380px 400px, rgba(255,255,255,0.75), transparent 60%),
+    radial-gradient(4px 4px at 780px 420px, rgba(210,220,255,0.8),  transparent 60%),
+    radial-gradient(4px 4px at 900px 60px,  rgba(255,255,255,0.8),  transparent 60%),
+    radial-gradient(4px 4px at 110px 460px, rgba(255,255,255,0.75), transparent 60%),
+    radial-gradient(4px 4px at 620px 470px, rgba(220,220,255,0.8),  transparent 60%),
+    radial-gradient(2.4px 2.4px at 45px 200px,  rgba(255,255,255,0.6),  transparent 60%),
+    radial-gradient(2.4px 2.4px at 260px 310px, rgba(200,200,255,0.55), transparent 60%),
+    radial-gradient(2.4px 2.4px at 500px 420px, rgba(255,255,255,0.5),  transparent 60%),
+    radial-gradient(2.4px 2.4px at 680px 120px, rgba(255,255,255,0.6),  transparent 60%),
+    radial-gradient(2.4px 2.4px at 860px 260px, rgba(255,255,255,0.55), transparent 60%),
+    radial-gradient(2.4px 2.4px at 310px 110px, rgba(255,255,255,0.5),  transparent 60%),
+    radial-gradient(2.4px 2.4px at 740px 240px, rgba(255,255,255,0.55), transparent 60%),
+    radial-gradient(2.4px 2.4px at 950px 170px, rgba(255,255,255,0.5),  transparent 60%);
+  background-repeat: repeat;
+  background-size: 1000px 500px;
+  opacity: 0.95;
+  animation: starsDrift 180s linear infinite, starsTwinkle 3.5s ease-in-out infinite;
+  will-change: opacity;
+  contain: layout style;
+}
+
+/* Starfield — far layer (dimmer, drifts slower to give parallax). */
+.cosmic-stars--far {
+  background-image:
+    radial-gradient(3.4px 3.4px at 90px 70px,   rgba(255,255,255,0.7), transparent 60%),
+    radial-gradient(3.4px 3.4px at 230px 140px, rgba(200,220,255,0.6), transparent 60%),
+    radial-gradient(3.4px 3.4px at 420px 30px,  rgba(255,240,220,0.7), transparent 60%),
+    radial-gradient(3.4px 3.4px at 560px 260px, rgba(255,255,255,0.6), transparent 60%),
+    radial-gradient(3.4px 3.4px at 720px 380px, rgba(220,230,255,0.65),transparent 60%),
+    radial-gradient(3.4px 3.4px at 880px 90px,  rgba(255,255,255,0.55),transparent 60%),
+    radial-gradient(2px 2px at 160px 320px, rgba(255,255,255,0.5), transparent 60%),
+    radial-gradient(2px 2px at 480px 180px, rgba(200,210,255,0.5), transparent 60%),
+    radial-gradient(2px 2px at 640px 90px,  rgba(255,255,255,0.45),transparent 60%),
+    radial-gradient(2px 2px at 820px 330px, rgba(255,240,220,0.5), transparent 60%);
+  background-repeat: repeat;
+  background-size: 1400px 700px;
+  opacity: 0.8;
+  animation: starsDrift 320s linear infinite reverse, starsTwinkle 6s ease-in-out infinite;
+}
+
+/* Shooting stars (two diagonals, very occasional). */
+.cosmic-shooting-star {
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 2px;
+  background: transparent;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.cosmic-shooting-star--a {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.9),
+    0 0 8px 2px rgba(200, 220, 255, 0.7);
+  animation: shootingStar 11s linear infinite;
+  animation-delay: 3s;
+}
+
+.cosmic-shooting-star--b {
+  top: 15%;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.9),
+    0 0 10px 2px rgba(255, 210, 180, 0.6);
+  animation: shootingStar2 17s linear infinite;
+  animation-delay: 9s;
+}
+
+@keyframes shootingStar {
+  0% {
+    transform: translate3d(-150px, -40px, 0) rotate(25deg);
+    opacity: 0;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.9),
+      0 0 8px 2px rgba(200,220,255,0.7),
+      -2px 0 2px 0 rgba(255,255,255,0.6),
+      -40px 0 40px 0 rgba(200,220,255,0.0);
+  }
+  3%  { opacity: 1; }
+  18% {
+    transform: translate3d(940px, 280px, 0) rotate(25deg);
+    opacity: 1;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.9),
+      0 0 8px 2px rgba(200,220,255,0.7),
+      -2px 0 2px 0 rgba(255,255,255,0.6),
+      -120px 0 80px 0 rgba(200,220,255,0.25);
+  }
+  22% { opacity: 0; }
+  100% { opacity: 0; transform: translate3d(1600px, 480px, 0) rotate(25deg); }
+}
+
+@keyframes shootingStar2 {
+  0% {
+    transform: translate3d(-150px, 0, 0) rotate(-12deg);
+    opacity: 0;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.9),
+      0 0 10px 2px rgba(255,210,180,0.6),
+      -2px 0 2px 0 rgba(255,255,255,0.6),
+      -40px 0 40px 0 rgba(255,210,180,0.0);
+  }
+  2%  { opacity: 1; }
+  14% {
+    transform: translate3d(1150px, -140px, 0) rotate(-12deg);
+    opacity: 1;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.9),
+      0 0 10px 2px rgba(255,210,180,0.6),
+      -2px 0 2px 0 rgba(255,255,255,0.6),
+      -140px 0 90px 0 rgba(255,210,180,0.22);
+  }
+  18% { opacity: 0; }
+  100% { opacity: 0; transform: translate3d(1700px, -240px, 0) rotate(-12deg); }
+}
+
+@keyframes starsDrift {
+  from { background-position: 0 0; }
+  to   { background-position: 1000px 500px; }
+}
+
+@keyframes starsTwinkle {
+  0%, 100% { opacity: 1; }
+  25%      { opacity: 0.55; }
+  50%      { opacity: 0.9; }
+  75%      { opacity: 0.45; }
+}
+
+@keyframes nebulaDrift {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  100% { transform: translate3d(2%, -1.5%, 0) rotate(0.5deg); }
+}
+
+/* Respect reduced-motion users: freeze background animations. */
+@media (prefers-reduced-motion: reduce) {
+  .cosmic-stars,
+  .cosmic-stars--far,
+  .cosmic-shooting-star {
+    animation: none !important;
+  }
+}
+
+/* Pause all CSS animations during window resize/zoom to prevent jank.
+   A JS resize listener adds this class to <body> for ~400ms. */
+.resize-animation-stopper *,
+.resize-animation-stopper *::before,
+.resize-animation-stopper *::after {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
+
+/* ===== KEYFRAMES ===== */
+
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes textGlowPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+@keyframes floatSoft {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes shimmerLine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0); }
+  50% { box-shadow: 0 0 20px 4px rgba(var(--accent-rgb), 0.2); }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes typewriter-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes aurora {
+  0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+  25% { transform: translateX(5%) translateY(-3%) rotate(1deg); }
+  50% { transform: translateX(-3%) translateY(5%) rotate(-1deg); }
+  75% { transform: translateX(3%) translateY(2%) rotate(0.5deg); }
+}
+
+@keyframes reveal-border {
+  0% { clip-path: inset(0 100% 100% 0); }
+  50% { clip-path: inset(0 0 100% 0); }
+  100% { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes countFlip {
+  from { transform: rotateX(-90deg); opacity: 0; }
+  to   { transform: rotateX(0deg); opacity: 1; }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ===== COMPONENT CLASSES ===== */
+
+@layer components {
+  .section-container {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-8;
+  }
+
+  .section-header {
+    @apply flex flex-col items-center gap-4 text-center;
+  }
+
+  .card-elevated {
+    @apply relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] transition-all duration-500 sm:rounded-3xl;
+  }
+
+  .card-elevated:hover {
+    @apply border-white/15 bg-white/[0.05];
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  }
+
+  .gradient-border {
+    position: relative;
+  }
+  .gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.4), transparent 40%, transparent 60%, rgba(var(--accent-soft-rgb), 0.3));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+  .gradient-border:hover::before {
+    opacity: 1;
+  }
+}
+
+@layer utilities {
+  .text-gradient-flow {
+    background-image: linear-gradient(95deg, #d7d3ff, #7b5bff, #5cd0ff, #b8adff, #fafafa);
+    background-size: 260% 260%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: gradientFlow 5s ease infinite;
+    /* Isolation creates a new stacking context so background-clip:text
+       is not broken by ancestor transforms (framer-motion, etc.) */
+    display: inline-block;
+    position: relative;
+    isolation: isolate;
+  }
+
+  .text-gradient-gold {
+    background-image: linear-gradient(95deg, #ffc457, #ffaa2c, #ffd89b, #ffb340);
+    background-size: 260% 260%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: gradientFlow 4s ease infinite;
+  }
+
+  .text-glow-pulse {
+    animation: textGlowPulse 3s ease-in-out infinite;
+  }
+
+  .float-soft {
+    animation: floatSoft 3.4s ease-in-out infinite;
+  }
+
+  .shimmer-line {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+    animation: shimmerLine 3s ease-in-out infinite;
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .glass-hover:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(var(--accent-rgb), 0.2);
+  }
+
+  .typewriter-cursor::after {
+    content: "|";
+    animation: typewriter-blink 0.8s step-end infinite;
+    color: #7b5bff;
+    font-weight: 300;
+    margin-left: 2px;
+  }
+
+  .aurora-bg {
+    animation: aurora 20s ease-in-out infinite;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .animate-marquee {
+    animation: marquee 35s linear infinite;
+  }
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+
+  /* Shine sweep on hover */
+  .shine-hover {
+    position: relative;
+    overflow: hidden;
+  }
+  .shine-hover::after {
+    content: "";
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: linear-gradient(
+      115deg,
+      transparent 40%,
+      rgba(255, 255, 255, 0.05) 45%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.05) 55%,
+      transparent 60%
+    );
+    transform: translateX(-100%) rotate(0deg);
+    transition: none;
+    pointer-events: none;
+  }
+  .shine-hover:hover::after {
+    transform: translateX(100%) rotate(0deg);
+    transition: transform 0.8s ease;
+  }
+}
+
+/* ===== MOBILE UX ===== */
+
+/* Select dropdown options dark theme fix (cross-browser) */
+select option {
+  background-color: #1a1a1a;
+  color: #fafafa;
+  padding: 8px;
+}
+select optgroup {
+  background-color: #111111;
+  color: #a1a1aa;
+}
+
+@media (max-width: 768px) {
+  button, a, [role="button"] {
+    min-height: 48px;
+  }
+
+  @media (hover: none) {
+    .shine-hover::after {
+      display: none;
+    }
+  }
+}
+
+html {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+html {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+body {
+  overflow-x: hidden;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+.mobile-snap-scroll {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+.mobile-snap-scroll > * {
+  scroll-snap-align: center;
+}
+
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.mobile-cta-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 45;
+  padding: 0.75rem 1rem;
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  background: linear-gradient(to top, rgba(10,10,10,0.98) 60%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.mobile-cta-bar.visible {
+  transform: translateY(0);
+}
+
+/* =========================================================
+   TEXT REVEAL — word/char-by-word animation on scroll
+   Injected by <TextReveal /> in app/providers.tsx.
+   The component splits text nodes of matched elements into
+   `.tr-word` spans and toggles `.tr-visible` on the container
+   once it enters the viewport, cascading each word in.
+   ========================================================= */
+
+/* Words start hidden; we transform instead of animating height
+   to stay GPU-friendly and avoid reflow. */
+.tr-container .tr-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translate3d(0, 0.6em, 0);
+  filter: blur(6px);
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity, filter;
+}
+
+/* Staggered reveal — nth-of-type cascades per word.
+   Cap the stagger at ~0.6s so long paragraphs don't feel slow. */
+.tr-container.tr-visible .tr-word {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  filter: blur(0);
+}
+.tr-container.tr-visible .tr-word:nth-child(1)  { transition-delay: 0.00s; }
+.tr-container.tr-visible .tr-word:nth-child(2)  { transition-delay: 0.04s; }
+.tr-container.tr-visible .tr-word:nth-child(3)  { transition-delay: 0.08s; }
+.tr-container.tr-visible .tr-word:nth-child(4)  { transition-delay: 0.12s; }
+.tr-container.tr-visible .tr-word:nth-child(5)  { transition-delay: 0.16s; }
+.tr-container.tr-visible .tr-word:nth-child(6)  { transition-delay: 0.20s; }
+.tr-container.tr-visible .tr-word:nth-child(7)  { transition-delay: 0.24s; }
+.tr-container.tr-visible .tr-word:nth-child(8)  { transition-delay: 0.28s; }
+.tr-container.tr-visible .tr-word:nth-child(9)  { transition-delay: 0.32s; }
+.tr-container.tr-visible .tr-word:nth-child(10) { transition-delay: 0.36s; }
+.tr-container.tr-visible .tr-word:nth-child(11) { transition-delay: 0.40s; }
+.tr-container.tr-visible .tr-word:nth-child(12) { transition-delay: 0.44s; }
+.tr-container.tr-visible .tr-word:nth-child(n+13) { transition-delay: 0.48s; }
+.tr-container.tr-visible .tr-word:nth-child(n+18) { transition-delay: 0.52s; }
+.tr-container.tr-visible .tr-word:nth-child(n+24) { transition-delay: 0.56s; }
+.tr-container.tr-visible .tr-word:nth-child(n+32) { transition-delay: 0.60s; }
+
+/* Whole-element fallback reveal (for blocks we don't split). */
+.tr-block {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+}
+.tr-block.tr-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Drop will-change after the animation ends to stop holding a layer. */
+.tr-container.tr-visible .tr-word,
+.tr-block.tr-visible {
+  will-change: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tr-container .tr-word,
+  .tr-block {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+}
+
+/* =========================================================
+   RENDER PERFORMANCE
+   Skip painting off-screen sections so scroll stays fluid.
+   Also drop `will-change` from always-animating starfields —
+   permanent will-change forces a GPU layer forever and hurts
+   composite cost on low/mid GPUs.
+   ========================================================= */
+main > section,
+main > div > section {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 900px;
+}
+
+.cosmic-stars,
+.cosmic-stars--far {
+  will-change: auto;
+}
