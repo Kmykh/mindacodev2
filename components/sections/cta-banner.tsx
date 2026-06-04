@@ -5,10 +5,13 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
 
+import { smoothScrollTo } from "@/lib/utils";
+
 export function CtaBanner() {
   const { t } = useT();
 
   const handleSchedule = () => {
+    smoothScrollTo("contact");
     const text = encodeURIComponent(t("cta.whatsapp"));
     window.open(`https://wa.me/51926948155?text=${text}`, "_blank", "noopener,noreferrer");
   };

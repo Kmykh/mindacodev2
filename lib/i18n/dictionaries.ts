@@ -4,9 +4,9 @@ export type Locale = "es" | "en";
 export const es: Record<string, string> = {
   // Offer Bar
   "offerBar.aria": "Oferta por tiempo limitado",
-  "offerBar.message": "Oferta por tiempo limitado —",
-  "offerBar.bold": "Tu web GRATIS",
-  "offerBar.mobile": "Web GRATIS",
+  "offerBar.message": "Oferta por tiempo limitado",
+  "offerBar.bold": "",
+  "offerBar.mobile": "Promoción",
   "offerBar.cta": "Ver oferta",
   "offerBar.dismiss": "Cerrar oferta",
 
@@ -271,9 +271,9 @@ export const es: Record<string, string> = {
 export const en: Record<string, string> = {
   // Offer Bar
   "offerBar.aria": "Limited time offer",
-  "offerBar.message": "Limited time offer —",
-  "offerBar.bold": "FREE website",
-  "offerBar.mobile": "FREE Website",
+  "offerBar.message": "Limited time offer",
+  "offerBar.bold": "",
+  "offerBar.mobile": "Offer",
   "offerBar.cta": "See offer",
   "offerBar.dismiss": "Close offer",
 

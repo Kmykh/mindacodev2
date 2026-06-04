@@ -5,10 +5,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Flame, ArrowRight, X, Clock } from "lucide-react";
 import { useT } from "@/lib/i18n";
 
+import { smoothScrollTo } from "@/lib/utils";
+
 const OFFER_HOURS = 2;
-// Shared with <TimeLimitedOffer />. Key suffix bumped (v2h) so any client
-// that still has the legacy 72h expiry stored resets cleanly to the 2h window.
-const STORAGE_EXPIRY = "mc_offer_expiry_v2h";
+const STORAGE_EXPIRY = "mc_offer_expiry";
 const STORAGE_DISMISS = "mc_offer_bar_dismissed";
 
 function formatSegment(n: number) {
@@ -78,6 +78,7 @@ export function OfferBar() {
   }, [visible]);
 
   const handleCTA = () => {
+    smoothScrollTo("oferta");
     window.dispatchEvent(new Event("mc:offer-open"));
   };
 
@@ -140,13 +141,14 @@ export function OfferBar() {
 
             {/* Right: CTA + dismiss */}
             <div className="flex items-center gap-1.5">
-              <button
+              <a
+                href="#oferta"
                 onClick={handleCTA}
                 className="group inline-flex items-center gap-1 rounded-full bg-black px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-amber-300 shadow-lg transition-transform hover:scale-[1.03] active:scale-[0.97] sm:px-4 sm:py-1.5 sm:text-[12px]"
               >
                 {t("offerBar.cta")}
                 <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5 sm:h-3.5 sm:w-3.5" />
-              </button>
+              </a>
               <button
                 onClick={handleDismiss}
                 aria-label={t("offerBar.dismiss")}

@@ -3,6 +3,8 @@
 import { motion, type Variants, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ArrowRight, MessageCircle } from "lucide-react";
+import { Preloader } from "@/components/layout/preloader";
+import { OfferBar } from "@/components/layout/offer-bar";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ScrollToTop } from "@/components/layout/scroll-to-top";
@@ -11,13 +13,16 @@ import { ScrollHyperspace } from "@/components/ui/scroll-hyperspace";
 import { Hero } from "@/components/sections/hero";
 import { TrustSection } from "@/components/sections/trust";
 import { ServicesSection } from "@/components/sections/services";
+import { TimeLimitedOffer } from "@/components/sections/time-limited-offer";
 import { PortfolioSection } from "@/components/sections/portfolio";
 import { ProcessSection } from "@/components/sections/process";
 import { TechStackSection } from "@/components/sections/tech-stack";
+import { TestimonialsSection } from "@/components/sections/testimonials";
 import { AboutSection } from "@/components/sections/about";
 import { ContactSection } from "@/components/sections/contact";
 import { CtaBanner } from "@/components/sections/cta-banner";
-import { MothersDayBanner } from "@/components/sections/mothers-day-banner";
+import { FathersDayBanner } from "@/components/sections/fathers-day-banner";
+import { WorldCupBanner } from "@/components/sections/world-cup-banner";
 import { useT } from "@/lib/i18n";
 import { smoothScrollTo } from "@/lib/utils";
 
@@ -83,6 +88,9 @@ function MobileFloatingCTA() {
 export default function HomePage() {
   return (
     <>
+      <Preloader />
+      <OfferBar />
+      <TimeLimitedOffer />
       <ScrollHyperspace />
       <SpotlightCursor />
       <Header />
@@ -90,7 +98,11 @@ export default function HomePage() {
         <Hero />
 
         <RevealOnScroll delay={0.05}>
-          <MothersDayBanner />
+          <FathersDayBanner />
+        </RevealOnScroll>
+
+        <RevealOnScroll delay={0.1}>
+          <WorldCupBanner />
         </RevealOnScroll>
 
         <RevealOnScroll>
@@ -108,7 +120,9 @@ export default function HomePage() {
         <RevealOnScroll delay={0.05}>
           <ProcessSection />
         </RevealOnScroll>
-
+        <RevealOnScroll>
+          <TestimonialsSection />
+        </RevealOnScroll>
         <RevealOnScroll delay={0.05}>
           <TechStackSection />
         </RevealOnScroll>

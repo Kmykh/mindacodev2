@@ -114,14 +114,14 @@ export function Header() {
           <div className="hidden md:flex items-center gap-2">
             <button
               onClick={() => scrollToSection("promocion", 30)}
-              className="relative overflow-hidden group flex items-center gap-1.5 rounded-full border border-rose-400/40 bg-rose-500/10 px-3 py-1.5 text-[12px] font-bold text-rose-300 transition-all hover:bg-rose-500/20 hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(244,63,94,0.3)]"
+              className="relative overflow-hidden group flex items-center gap-1.5 rounded-full border border-blue-400/40 bg-blue-500/10 px-3 py-1.5 text-[12px] font-bold text-blue-300 transition-all hover:bg-blue-500/20 hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(59,130,246,0.3)]"
             >
               <motion.span
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
               >
               </motion.span>
-              Promo Mamá
+              Promo Papá
             </button>
             <button
               onClick={() => setLocale(locale === "es" ? "en" : "es")}
