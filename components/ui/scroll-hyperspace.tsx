@@ -14,27 +14,36 @@ export function ScrollHyperspace() {
     let w = (canvas.width = window.innerWidth);
     let h = (canvas.height = window.innerHeight);
 
-    const stars: { x: number; y: number; z: number; prevZ: number }[] = [];
-    const numStars = 800;
+    // Partículas para el fondo del mundial (confeti, círculos verdes/oropel)
+    const particles: { 
+      x: number; y: number; size: number; speedY: number; speedX: number; 
+      color: string; rot: number; rotSpeed: number; type: string 
+    }[] = [];
+    const numParticles = 60;
+    const colors = ["#22c55e", "#16a34a", "#eab308", "#facc15", "#ffffff"];
+    const types = ["circle", "rect", "ball"];
 
-    for (let i = 0; i < numStars; i++) {
-      stars.push({
-        x: Math.random() * 2000 - 1000,
-        y: Math.random() * 2000 - 1000,
-        z: Math.random() * 2000,
-        prevZ: 0,
+    for (let i = 0; i < numParticles; i++) {
+      particles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        size: Math.random() * 8 + 4,
+        speedY: Math.random() * 1 + 0.5,
+        speedX: Math.random() * 1 - 0.5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: Math.random() * 0.05 - 0.025,
+        type: Math.random() > 0.85 ? "ball" : types[Math.floor(Math.random() * 2)]
       });
     }
 
-    let scrollSpeed = 200; // Start at warp speed on load
-    let targetSpeed = 1; 
+    let scrollSpeed = 0; 
     let lastScrollY = window.scrollY;
 
     const handleScroll = () => {
       const currentScroll = window.scrollY;
-      const delta = Math.abs(currentScroll - lastScrollY);
-      // Boost speed based on scroll delta
-      targetSpeed = Math.min(delta * 1.5 + 1, 100); 
+      const delta = currentScroll - lastScrollY;
+      scrollSpeed = delta * 0.5; 
       lastScrollY = currentScroll;
     };
 
@@ -43,44 +52,57 @@ export function ScrollHyperspace() {
     let animationFrameId: number;
 
     const draw = () => {
-      // Smoothly transition speed
-      scrollSpeed += (targetSpeed - scrollSpeed) * 0.1;
-      // Decay target speed back to resting speed
-      targetSpeed += (1 - targetSpeed) * 0.05;
-
       ctx.clearRect(0, 0, w, h);
+      
+      // Suave inercia del scroll
+      scrollSpeed *= 0.9;
 
-      const cx = w / 2;
-      const cy = h / 2;
+      for (let i = 0; i < numParticles; i++) {
+        const p = particles[i];
+        
+        // Movimiento natural + efecto del scroll de la página
+        p.y -= scrollSpeed + p.speedY; // El scroll hacia abajo hace que suban, y viceversa
+        p.x += p.speedX;
+        p.rot += p.rotSpeed;
 
-      for (let i = 0; i < numStars; i++) {
-        const star = stars[i];
-        star.prevZ = star.z;
-        star.z -= scrollSpeed;
+        // Reposicionar si sale de la pantalla
+        if (p.y < -50) p.y = h + 50;
+        if (p.y > h + 50) p.y = -50;
+        if (p.x < -50) p.x = w + 50;
+        if (p.x > w + 50) p.x = -50;
 
-        if (star.z <= 0) {
-          star.x = Math.random() * 2000 - 1000;
-          star.y = Math.random() * 2000 - 1000;
-          star.z = 2000;
-          star.prevZ = 2000;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.globalAlpha = 0.6; // Suave opacidad para el fondo
+
+        if (p.type === "ball") {
+           // Dibujar un baloncito simple
+           ctx.beginPath();
+           ctx.arc(0, 0, p.size * 1.5, 0, Math.PI * 2);
+           ctx.fillStyle = "#ffffff";
+           ctx.fill();
+           ctx.beginPath();
+           ctx.arc(0, 0, p.size * 1.5, 0, Math.PI * 2);
+           ctx.strokeStyle = "#000000";
+           ctx.lineWidth = 1;
+           ctx.stroke();
+           
+           ctx.fillStyle = "#000000";
+           ctx.beginPath();
+           ctx.arc(0, 0, p.size * 0.6, 0, Math.PI * 2);
+           ctx.fill();
+        } else if (p.type === "circle") {
+           ctx.beginPath();
+           ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+           ctx.fillStyle = p.color;
+           ctx.fill();
+        } else {
+           ctx.fillStyle = p.color;
+           ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 1.5);
         }
 
-        const x = cx + (star.x / star.z) * w;
-        const y = cy + (star.y / star.z) * h;
-
-        const px = cx + (star.x / star.prevZ) * w;
-        const py = cy + (star.y / star.prevZ) * h;
-
-        // Calculate opacity and thickness based on z (closer = brighter/thicker)
-        const depthRatio = 1 - star.z / 2000;
-        
-        ctx.beginPath();
-        ctx.moveTo(px, py);
-        ctx.lineTo(x, y);
-        ctx.lineWidth = depthRatio * 2;
-        // Rose-tinted white for hyperspace light
-        ctx.strokeStyle = `rgba(255, 230, 240, ${depthRatio})`;
-        ctx.stroke();
+        ctx.restore();
       }
 
       animationFrameId = requestAnimationFrame(draw);
@@ -104,8 +126,7 @@ export function ScrollHyperspace() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-[1] opacity-70"
-      style={{ mixBlendMode: "screen" }}
+      className="fixed inset-0 pointer-events-none z-[1]"
     />
   );
 }

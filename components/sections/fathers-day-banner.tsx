@@ -21,6 +21,12 @@ const fadeUp = (delay: number) => ({
   transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1], delay },
 });
 
+export function FathersDayBanner() {
+  const { d, h, m, s, expired } = useCountdown();
+
+  const handleOfferClaim = () => {
+    const text = encodeURIComponent(
+      "Hola Minda, vengo de la promoción del Día del Padre y quiero mi web"
 export function MothersDayBanner() {
   const handleCTA = () => {
     const msg = encodeURIComponent(
@@ -184,6 +190,33 @@ export function MothersDayBanner() {
         2026
       </motion.div>
 
+            {/* CRONOMETRO EN TEXTO - MINIMALISTA */}
+            {!expired && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="mt-8 pt-8 border-t border-white/10"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="w-4 h-4 text-blue-400/60" />
+                  <span className="text-xs uppercase tracking-widest text-white/50 font-medium">
+                    Disponible por
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <TimeUnit value={d} label="días" />
+                  <span className="text-white/30 text-lg font-light">:</span>
+                  <TimeUnit value={h} label="hrs" />
+                  <span className="text-white/30 text-lg font-light">:</span>
+                  <TimeUnit value={m} label="min" />
+                  <span className="text-white/30 text-lg font-light">:</span>
+                  <TimeUnit value={s} label="seg" />
+                </div>
+              </motion.div>
+            )}
+          </motion.div>
       {/* Mascota — flotando */}
       <div
         style={{

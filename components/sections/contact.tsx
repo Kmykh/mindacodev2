@@ -10,8 +10,7 @@ export function ContactSection() {
   const { t } = useT();
   const serviceOptions = t("contact.serviceOpts").split("|");
   const [formData, setFormData] = useState({
-    name: "",
-    service: "",
+    name: "",    email: "",    service: "",
     budget: "",
     message: "",
   });
@@ -28,6 +27,7 @@ export function ContactSection() {
       `${t("contact.wa.from")}`,
       "",
       `${t("contact.wa.name")} ${formData.name}`,
+      `Email: ${formData.email}`,
       `${t("contact.wa.service")} ${formData.service}`,
       `${t("contact.wa.budget")} ${formData.budget}`,
       "",
@@ -112,7 +112,7 @@ export function ContactSection() {
                     variant="secondary"
                     onClick={() => {
                       setSubmitted(false);
-                      setFormData({ name: "", service: "", budget: "", message: "" });
+                      setFormData({ name: "", email: "", service: "", budget: "", message: "" });
                     }}
                   >
                     {t("contact.form.success.action")}
@@ -143,6 +143,24 @@ export function ContactSection() {
                       />
                     </div>
 
+                    <div className="space-y-1.5">
+                      <label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-foreground-muted">
+                        Email
+                      </label>
+                      <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        required
+                        value={formData.email}
+                        onChange={handleChange}
+                        className={inputStyles}
+                        placeholder="tu@email.com"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-1.5">
                       <label htmlFor="budget" className="text-xs font-medium uppercase tracking-wider text-foreground-muted">
                         {t("contact.form.budget")}

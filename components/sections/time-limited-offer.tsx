@@ -8,16 +8,27 @@ import { useT } from "@/lib/i18n";
 
 import Image from "next/image";
 
-const MOTHERS_DAY_EXPIRY = new Date("2026-05-13T23:59:59").getTime();
+const FATHERS_DAY_EXPIRY = new Date("2026-06-21T23:59:59").getTime();
 
 function useCountdown() {
   const [timeLeft, setTimeLeft] = useState({ d: 0, h: 0, m: 0, s: 0, expired: false });
 
   useEffect(() => {
+    let expiry = localStorage.getItem("mc_offer_expiry");
+    if (!expiry || parseInt(expiry, 10) < Date.now()) {
+      const newExpiry = Date.now() + 2 * 60 * 60 * 1000; // 2 hours
+      localStorage.setItem("mc_offer_expiry", newExpiry.toString());
+      expiry = newExpiry.toString();
+    }
+    const expiryTime = parseInt(expiry, 10);
+
     const tick = () => {
-      const diff = MOTHERS_DAY_EXPIRY - Date.now();
+      const diff = expiryTime - Date.now();
       if (diff <= 0) {
-        setTimeLeft({ d: 0, h: 0, m: 0, s: 0, expired: true });
+        // Reset when expired
+        const nextExpiry = Date.now() + 2 * 60 * 60 * 1000;
+        localStorage.setItem("mc_offer_expiry", nextExpiry.toString());
+        setTimeLeft({ d: 0, h: 2, m: 0, s: 0, expired: false });
         return;
       }
       setTimeLeft({
@@ -52,8 +63,8 @@ function TimeBlock({ value, label }: { value: number; label: string }) {
 
   return (
     <div className="flex flex-col items-center gap-1.5">
-      <div className="relative flex h-[50px] w-[50px] sm:h-[64px] sm:w-[64px] md:h-[80px] md:w-[80px] items-center justify-center overflow-hidden rounded-xl border border-rose-400/20 bg-gradient-to-b from-white/[0.08] to-white/[0.02] shadow-lg backdrop-blur-md">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-rose-300/50 to-transparent" />
+      <div className="relative flex h-[50px] w-[50px] sm:h-[64px] sm:w-[64px] md:h-[80px] md:w-[80px] items-center justify-center overflow-hidden rounded-xl border border-blue-400/20 bg-gradient-to-b from-white/[0.08] to-white/[0.02] shadow-lg backdrop-blur-md">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/50 to-transparent" />
         <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-black/10" />
         <motion.span
           key={value}
@@ -65,7 +76,7 @@ function TimeBlock({ value, label }: { value: number; label: string }) {
           {String(value).padStart(2, "0")}
         </motion.span>
       </div>
-      <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.15em] text-rose-300/80 font-semibold">{label}</span>
+      <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.15em] text-blue-300/80 font-semibold">{label}</span>
     </div>
   );
 }
@@ -102,7 +113,7 @@ export function TimeLimitedOffer() {
   }, [expired]);
 
   const handleOfferClaim = () => {
-    const text = encodeURIComponent("¡Hola Minda! 💖 Vengo de la promoción del Día de la Madre y me encantaría tener una Página Web increíble ✨");
+    const text = encodeURIComponent("¡Hola Minda! � Vengo de la promoción del Día del Padre y me encantaría tener una Página Web increíble ✨");
     window.open(`https://wa.me/51926948155?text=${text}`, "_blank", "noopener,noreferrer");
   };
 
@@ -128,8 +139,8 @@ export function TimeLimitedOffer() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 350 }}
-              className="pointer-events-auto relative w-full max-w-[440px] overflow-hidden rounded-[2rem] border border-rose-400/40 bg-[#120a11]/98 shadow-[0_0_100px_-20px_rgba(244,63,94,0.6)]"
-              aria-label="Oferta Día de la Madre"
+              className="pointer-events-auto relative w-full max-w-[440px] overflow-hidden rounded-[2rem] border border-blue-400/40 bg-[#090f1e]/98 shadow-[0_0_100px_-20px_rgba(59,130,246,0.6)]"
+              aria-label="Oferta Día del Padre"
             >
               {/* Floating Hearts Animation */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -158,7 +169,7 @@ export function TimeLimitedOffer() {
                         delay: delay,
                         ease: "easeOut"
                       }}
-                      className="absolute bottom-[-50px] text-4xl drop-shadow-[0_0_15px_rgba(244,63,94,0.6)]"
+                      className="absolute bottom-[-50px] text-4xl drop-shadow-[0_0_15px_rgba(59,130,246,0.6)]"
                       style={{ left: `${startX}%` }}
                     >
                       {emoji}
@@ -167,63 +178,63 @@ export function TimeLimitedOffer() {
                 })}
               </div>
 
-              <div className="relative z-10 flex items-center justify-between border-b border-rose-500/20 bg-gradient-to-r from-rose-500/30 via-pink-400/20 to-transparent px-5 py-4">
-                <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.2em] text-rose-200">
-                  <Gift className="h-4 w-4 text-rose-400" />
-                  Especial Día de la Madre
+              <div className="relative z-10 flex items-center justify-between border-b border-blue-500/20 bg-gradient-to-r from-blue-500/30 via-indigo-400/20 to-transparent px-5 py-4">
+                <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.2em] text-blue-200">
+                  <Gift className="h-4 w-4 text-blue-400" />
+                  Especial Día del Padre
                 </div>
                 <button
                   onClick={() => setExpanded(false)}
                   aria-label="Minimizar oferta"
-                  className="rounded-full bg-black/20 p-2 text-rose-200/70 transition-colors hover:bg-rose-500/40 hover:text-white"
+                  className="rounded-full bg-black/20 p-2 text-blue-200/70 transition-colors hover:bg-blue-500/40 hover:text-white"
                 >
                   <Minimize2 className="h-4 w-4" />
                 </button>
               </div>
 
               <div className="relative z-10 p-1.5">
-                <div className="relative h-56 w-full overflow-hidden rounded-[1.75rem] shadow-inner">
+                <div className="relative h-64 w-full overflow-hidden rounded-[1.75rem] shadow-inner bg-transparent">
                   <Image 
-                    src="/mothers-day.png" 
-                    alt="Día de la Madre" 
+                    src="/fathers-day.png" 
+                    alt="Día del Padre" 
                     fill
-                    className="object-cover object-center"
+                    className="object-contain object-center scale-[0.85] p-2"
                     sizes="(max-width: 440px) 100vw, 440px"
                     priority
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#120a11] via-[#120a11]/40 to-transparent/10" />
-                  <div className="absolute bottom-4 left-5 right-5 text-center">
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#090f1e] via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute bottom-3 left-5 right-5 text-center z-30">
                      <h3 className="text-[28px] leading-tight font-black text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
                        Impulsa su Negocio
                      </h3>
-                     <p className="mt-1 text-[15px] font-medium text-rose-100 drop-shadow-[0_2px_5px_rgba(0,0,0,0.8)]">
-                       El mejor regalo: una <span className="text-rose-300 font-bold">Página Web Profesional</span>
+                     <p className="mt-1 text-[15px] font-medium text-blue-100 drop-shadow-[0_2px_5px_rgba(0,0,0,0.8)]">
+                       El mejor regalo: una <span className="text-blue-300 font-bold">Página Web Profesional</span>
                      </p>
                   </div>
                 </div>
               </div>
 
               <div className="relative z-10 space-y-5 px-6 pb-6 pt-2 text-center">
-                <p className="text-[15px] text-rose-100/80 leading-relaxed font-medium">
-                  Sorprende a Mamá con una presencia online increíble. Aprovecha nuestra <span className="font-bold text-rose-300">promoción exclusiva</span> para crear o renovar su sitio web. ✨👩‍💻
+                <p className="text-[15px] text-blue-100/80 leading-relaxed font-medium">
+                  Sorprende a Papá con una presencia online increíble. Aprovecha nuestra <span className="font-bold text-blue-300">promoción exclusiva</span> para crear o renovar su sitio web. ✨💻
                 </p>
 
                 <div className="flex items-end justify-center gap-1.5 sm:gap-2">
                   <TimeBlock value={d} label="Días" />
-                  <span className="mb-4 sm:mb-6 text-xl font-black text-rose-300/80">:</span>
+                  <span className="mb-4 sm:mb-6 text-xl font-black text-blue-300/80">:</span>
                   <TimeBlock value={h} label="Hrs" />
-                  <span className="mb-4 sm:mb-6 text-xl font-black text-rose-300/80">:</span>
+                  <span className="mb-4 sm:mb-6 text-xl font-black text-blue-300/80">:</span>
                   <TimeBlock value={m} label="Min" />
-                  <span className="mb-4 sm:mb-6 text-xl font-black text-rose-300/80">:</span>
+                  <span className="mb-4 sm:mb-6 text-xl font-black text-blue-300/80">:</span>
                   <TimeBlock value={s} label="Seg" />
                 </div>
 
                 <Button
-                  className="group relative h-14 w-full overflow-hidden rounded-xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-500 bg-[length:200%_auto] text-[15px] font-black text-white shadow-[0_0_20px_rgba(244,63,94,0.4)] transition-all hover:bg-[100%_auto] hover:shadow-[0_0_30px_rgba(244,63,94,0.6)] hover:-translate-y-0.5 active:translate-y-0"
+                  className="group relative h-14 w-full overflow-hidden rounded-xl bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 bg-[length:200%_auto] text-[15px] font-black text-white shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all hover:bg-[100%_auto] hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] hover:-translate-y-0.5 active:translate-y-0"
                   onClick={handleOfferClaim}
                 >
                   <span className="relative z-10 flex items-center justify-center">
-                    💖 ¡Reclamar Promoción Web!
+                    🎁 ¡Reclamar Promoción Web!
                     <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                   </span>
                 </Button>
@@ -239,9 +250,9 @@ export function TimeLimitedOffer() {
               exit={{ opacity: 0, y: 20, scale: 0.9 }}
               transition={{ duration: 0.3 }}
               onClick={() => setExpanded(true)}
-              className="pointer-events-auto flex items-center gap-2.5 rounded-full border border-rose-400/40 bg-[#120a11]/95 px-5 py-3 text-[13px] font-bold uppercase tracking-[0.16em] text-rose-300 shadow-[0_10px_30px_-10px_rgba(244,63,94,0.6)] backdrop-blur-md transition-transform hover:scale-105 active:scale-95"
+              className="pointer-events-auto flex items-center gap-2.5 rounded-full border border-blue-400/40 bg-[#090f1e]/95 px-5 py-3 text-[13px] font-bold uppercase tracking-[0.16em] text-blue-300 shadow-[0_10px_30px_-10px_rgba(59,130,246,0.6)] backdrop-blur-md transition-transform hover:scale-105 active:scale-95"
             >
-              <Gift className="h-5 w-5 text-rose-400 animate-pulse" />
+              <Gift className="h-5 w-5 text-blue-400 animate-pulse" />
               Promoción Web 🎁
             </motion.button>
           </div>
