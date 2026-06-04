@@ -14,119 +14,116 @@ export function ScrollHyperspace() {
     let w = (canvas.width = window.innerWidth);
     let h = (canvas.height = window.innerHeight);
 
-    // Partículas para el fondo del mundial (confeti, círculos verdes/oropel)
-    const particles: { 
-      x: number; y: number; size: number; speedY: number; speedX: number; 
-      color: string; rot: number; rotSpeed: number; type: string 
-    }[] = [];
-    const numParticles = 60;
-    const colors = ["#22c55e", "#16a34a", "#eab308", "#facc15", "#ffffff"];
-    const types = ["circle", "rect", "ball"];
+    const NUM = 180;
 
-    for (let i = 0; i < numParticles; i++) {
-      particles.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        size: Math.random() * 8 + 4,
-        speedY: Math.random() * 1 + 0.5,
-        speedX: Math.random() * 1 - 0.5,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        rot: Math.random() * Math.PI * 2,
-        rotSpeed: Math.random() * 0.05 - 0.025,
-        type: Math.random() > 0.85 ? "ball" : types[Math.floor(Math.random() * 2)]
-      });
-    }
-
-    let scrollSpeed = 0; 
-    let lastScrollY = window.scrollY;
-
-    const handleScroll = () => {
-      const currentScroll = window.scrollY;
-      const delta = currentScroll - lastScrollY;
-      scrollSpeed = delta * 0.5; 
-      lastScrollY = currentScroll;
+    type Star = {
+      x: number; y: number;
+      px: number; py: number;
+      z: number;
+      angle: number;
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    const stars: Star[] = [];
 
-    let animationFrameId: number;
+    const spawn = (s: Star) => {
+      s.angle = Math.random() * Math.PI * 2;
+      const r = Math.random() * 30;
+      s.x = Math.cos(s.angle) * r;
+      s.y = Math.sin(s.angle) * r;
+      s.px = s.x;
+      s.py = s.y;
+      s.z = Math.random() * 0.85 + 0.15;
+    };
+
+    for (let i = 0; i < NUM; i++) {
+      const s = { x: 0, y: 0, px: 0, py: 0, z: 0, angle: 0 };
+      spawn(s);
+      // Pre-scatter so stars don't all start at center on load
+      const scatter = Math.random() * (Math.max(w, h) * 0.5);
+      s.x = Math.cos(s.angle) * scatter;
+      s.y = Math.sin(s.angle) * scatter;
+      s.px = s.x;
+      s.py = s.y;
+      stars.push(s);
+    }
+
+    let vel = 0;
+    let lastY = window.scrollY;
+
+    const onScroll = () => {
+      const cur = window.scrollY;
+      vel += Math.abs(cur - lastY) * 0.2;
+      lastY = cur;
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    let raf: number;
 
     const draw = () => {
+      raf = requestAnimationFrame(draw);
+      vel *= 0.88;
+
+      // Clear completely every frame — never darken the page behind
       ctx.clearRect(0, 0, w, h);
-      
-      // Suave inercia del scroll
-      scrollSpeed *= 0.9;
 
-      for (let i = 0; i < numParticles; i++) {
-        const p = particles[i];
-        
-        // Movimiento natural + efecto del scroll de la página
-        p.y -= scrollSpeed + p.speedY; // El scroll hacia abajo hace que suban, y viceversa
-        p.x += p.speedX;
-        p.rot += p.rotSpeed;
+      // Nothing to draw when not scrolling — canvas stays fully transparent
+      if (vel < 0.05) return;
 
-        // Reposicionar si sale de la pantalla
-        if (p.y < -50) p.y = h + 50;
-        if (p.y > h + 50) p.y = -50;
-        if (p.x < -50) p.x = w + 50;
-        if (p.x > w + 50) p.x = -50;
+      ctx.save();
+      ctx.translate(w / 2, h / 2);
 
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rot);
-        ctx.globalAlpha = 0.6; // Suave opacidad para el fondo
+      for (let i = 0; i < stars.length; i++) {
+        const s = stars[i];
 
-        if (p.type === "ball") {
-           // Dibujar un baloncito simple
-           ctx.beginPath();
-           ctx.arc(0, 0, p.size * 1.5, 0, Math.PI * 2);
-           ctx.fillStyle = "#ffffff";
-           ctx.fill();
-           ctx.beginPath();
-           ctx.arc(0, 0, p.size * 1.5, 0, Math.PI * 2);
-           ctx.strokeStyle = "#000000";
-           ctx.lineWidth = 1;
-           ctx.stroke();
-           
-           ctx.fillStyle = "#000000";
-           ctx.beginPath();
-           ctx.arc(0, 0, p.size * 0.6, 0, Math.PI * 2);
-           ctx.fill();
-        } else if (p.type === "circle") {
-           ctx.beginPath();
-           ctx.arc(0, 0, p.size, 0, Math.PI * 2);
-           ctx.fillStyle = p.color;
-           ctx.fill();
-        } else {
-           ctx.fillStyle = p.color;
-           ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 1.5);
+        s.px = s.x;
+        s.py = s.y;
+
+        const speed = s.z * vel * 2.5;
+        s.x += Math.cos(s.angle) * speed;
+        s.y += Math.sin(s.angle) * speed;
+
+        if (Math.hypot(s.x, s.y) > Math.hypot(w, h) * 0.55) {
+          spawn(s);
+          continue;
         }
 
-        ctx.restore();
+        const alpha = Math.min((vel / 5) * s.z + 0.12, 0.92);
+        const bright = Math.floor(160 + s.z * 95);
+
+        ctx.beginPath();
+        ctx.moveTo(s.px, s.py);
+        ctx.lineTo(s.x, s.y);
+        ctx.strokeStyle = `rgba(${bright},${bright},255,${alpha})`;
+        ctx.lineWidth = s.z * 1.5 + 0.2;
+        ctx.lineCap = "round";
+        ctx.stroke();
       }
 
-      animationFrameId = requestAnimationFrame(draw);
+      ctx.restore();
     };
 
     draw();
 
-    const handleResize = () => {
-      w = (canvas.width = window.innerWidth);
-      h = (canvas.height = window.innerHeight);
+    const onResize = () => {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
     };
-    window.addEventListener("resize", handleResize);
+
+    window.addEventListener("resize", onResize);
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleResize);
-      cancelAnimationFrame(animationFrameId);
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-[1]"
+      className="fixed inset-0 pointer-events-none z-[2]"
+      style={{ mixBlendMode: "screen" }}
     />
   );
 }
