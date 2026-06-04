@@ -114,14 +114,14 @@ export function Header() {
           <div className="hidden md:flex items-center gap-2">
             <button
               onClick={() => scrollToSection("promocion", 30)}
-              className="relative overflow-hidden group flex items-center gap-1.5 rounded-full border border-rose-400/40 bg-rose-500/10 px-3 py-1.5 text-[12px] font-bold text-rose-300 transition-all hover:bg-rose-500/20 hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(244,63,94,0.3)]"
+              className="relative overflow-hidden group flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1.5 text-[12px] font-bold text-amber-300 transition-all hover:bg-amber-500/20 hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(212,160,23,0.35)]"
             >
               <motion.span
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                animate={{ scale: [1, 1.25, 1] }}
+                transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
               >
               </motion.span>
-              Promo Mamá
+              Promo Mundial
             </button>
             <button
               onClick={() => setLocale(locale === "es" ? "en" : "es")}
@@ -201,15 +201,15 @@ export function Header() {
                   {/* Mobile Promo toggle */}
                   <button
                     onClick={() => scrollToSection("promocion")}
-                    className="flex items-center gap-2.5 px-4 py-3 text-[15px] font-bold text-rose-300 rounded-2xl hover:bg-rose-500/10 active:scale-[0.97] transition-all bg-rose-500/5 border border-rose-500/20 mb-1"
+                    className="flex items-center gap-2.5 px-4 py-3 text-[15px] font-bold text-amber-300 rounded-2xl hover:bg-amber-500/10 active:scale-[0.97] transition-all bg-amber-500/5 border border-amber-500/20 mb-1"
                   >
                     <motion.span
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                      animate={{ scale: [1, 1.25, 1] }}
+                      transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
                     >
-                      🎁
+                      ⚽
                     </motion.span>
-                    Especial Mamá
+                    Promo Mundial
                   </button>
                   {/* Mobile language toggle */}
                   <button

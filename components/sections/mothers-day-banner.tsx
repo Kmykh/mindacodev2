@@ -1,306 +1,425 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { ArrowRight, Gift, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import mascotaOff from "@/components/assets/mascota_off.png";
+import { Bebas_Neue } from "next/font/google";
+import { motion } from "framer-motion";
 
-const MOTHERS_DAY_EXPIRY = new Date("2026-05-13T23:59:59").getTime();
+const bebas = Bebas_Neue({ weight: "400", subsets: ["latin"] });
 
-function useCountdown() {
-  const [timeLeft, setTimeLeft] = useState({
-    d: 0,
-    h: 0,
-    m: 0,
-    s: 0,
-    expired: false,
-  });
+const PILLS = [
+  "Diseño profesional",
+  "Mobile ready",
+  "Publicado online",
+  "5 cupos",
+  "@mindacode",
+];
 
-  useEffect(() => {
-    const tick = () => {
-      const diff = MOTHERS_DAY_EXPIRY - Date.now();
-
-      if (diff <= 0) {
-        setTimeLeft({ d: 0, h: 0, m: 0, s: 0, expired: true });
-        return;
-      }
-
-      setTimeLeft({
-        d: Math.floor(diff / 86_400_000),
-        h: Math.floor((diff % 86_400_000) / 3_600_000),
-        m: Math.floor((diff % 3_600_000) / 60_000),
-        s: Math.floor((diff % 60_000) / 1_000),
-        expired: false,
-      });
-    };
-
-    tick();
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return timeLeft;
-}
-
-function TimeUnit({ value, label }: { value: number; label: string }) {
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <motion.div
-        key={value}
-        initial={{ opacity: 0, y: -4 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
-        className="text-lg sm:text-xl font-semibold text-white tabular-nums"
-      >
-        {String(value).padStart(2, "0")}
-      </motion.div>
-      <span className="text-[10px] sm:text-xs font-medium uppercase tracking-wider text-white/50">
-        {label}
-      </span>
-    </div>
-  );
-}
-
-function HeartParticles() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let particles: { x: number, y: number, originX: number, originY: number, size: number, color: string, vx: number, vy: number, angle: number, speedRotate: number }[] = [];
-    let animationFrameId: number;
-    let mouse = { x: -1000, y: -1000 };
-
-    const colors = ['rgba(244, 63, 94, 0.4)', 'rgba(251, 113, 133, 0.3)', 'rgba(253, 164, 175, 0.2)'];
-
-    const resize = () => {
-      const parent = canvas.parentElement;
-      if (parent) {
-        canvas.width = parent.clientWidth;
-        canvas.height = parent.clientHeight;
-      }
-      initParticles();
-    };
-
-    const initParticles = () => {
-      particles = [];
-      const numParticles = Math.floor((canvas.width * canvas.height) / 8000); 
-      for (let i = 0; i < numParticles; i++) {
-        const x = Math.random() * canvas.width;
-        const y = Math.random() * canvas.height;
-        particles.push({
-          x, y, originX: x, originY: y,
-          vx: 0, vy: 0,
-          size: Math.random() * 6 + 4,
-          color: colors[Math.floor(Math.random() * colors.length)],
-          angle: Math.random() * Math.PI * 2,
-          speedRotate: (Math.random() - 0.5) * 0.02
-        });
-      }
-    };
-
-    const drawHeart = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string, angle: number) => {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(angle);
-      ctx.scale(size, size);
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.bezierCurveTo(0, -0.3, -0.8, -0.3, -0.8, 0.2);
-      ctx.bezierCurveTo(-0.8, 0.7, 0, 1.2, 0, 1.2);
-      ctx.bezierCurveTo(0, 1.2, 0.8, 0.7, 0.8, 0.2);
-      ctx.bezierCurveTo(0.8, -0.3, 0, -0.3, 0, 0);
-      ctx.fill();
-      ctx.restore();
-    };
-
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-        
-        // Mouse interaction
-        const dx = mouse.x - p.x;
-        const dy = mouse.y - p.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const maxDist = 200;
-        
-        if (distance < maxDist) {
-           const force = (maxDist - distance) / maxDist;
-           p.vx += dx * force * 0.01;
-           p.vy += dy * force * 0.01;
-        } 
-        
-        // Return to origin spring
-        p.vx += (p.originX - p.x) * 0.015;
-        p.vy += (p.originY - p.y) * 0.015;
-        
-        // Dampening
-        p.vx *= 0.92;
-        p.vy *= 0.92;
-
-        p.x += p.vx;
-        p.y += p.vy;
-        p.angle += p.speedRotate;
-
-        drawHeart(ctx, p.x, p.y, p.size, p.color, p.angle);
-      }
-      
-      animationFrameId = requestAnimationFrame(draw);
-    };
-
-    window.addEventListener('resize', resize);
-    resize();
-    draw();
-
-    const parent = canvas.parentElement;
-    if (!parent) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-       const rect = parent.getBoundingClientRect();
-       mouse.x = e.clientX - rect.left;
-       mouse.y = e.clientY - rect.top;
-    };
-    const handleMouseLeave = () => {
-       mouse.x = -1000;
-       mouse.y = -1000;
-    };
-
-    parent.addEventListener('mousemove', handleMouseMove);
-    parent.addEventListener('mouseleave', handleMouseLeave);
-
-    return () => {
-      window.removeEventListener('resize', resize);
-      parent.removeEventListener('mousemove', handleMouseMove);
-      parent.removeEventListener('mouseleave', handleMouseLeave);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none z-0 mix-blend-screen" />;
-}
+const fadeUp = (delay: number) => ({
+  initial: { opacity: 0, y: 28 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true },
+  transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1], delay },
+});
 
 export function MothersDayBanner() {
-  const { d, h, m, s, expired } = useCountdown();
-
-  const handleOfferClaim = () => {
-    const text = encodeURIComponent(
-      "Hola Minda, vengo de la promocion del Dia de la Madre y quiero mi web"
+  const handleCTA = () => {
+    const msg = encodeURIComponent(
+      "Hola Minda! Vi la promo Debut Digital - Mundial 2026 y quiero mi web profesional gratis"
     );
-    window.open(
-      `https://wa.me/51926948155?text=${text}`,
-      "_blank"
-    );
+    window.open(`https://wa.me/51926948155?text=${msg}`, "_blank");
   };
 
   return (
-    <section id="promocion" className="relative overflow-hidden py-12 sm:py-16 bg-[#050305]">
-      <div className="absolute inset-0 flex items-center justify-center">
+    <section
+      id="promocion"
+      className="relative overflow-hidden"
+      style={{ minHeight: "100vh", backgroundColor: "#080818" }}
+    >
+
+      {/* ═══════════════════════════════════════════
+          z:0 — TIRAS VERTICALES ANIMADAS
+          top: -100% + height: 300% garantiza que la
+          tira cubra el viewport en todo momento,
+          incluso en el extremo del translateY(±30%)
+      ═══════════════════════════════════════════ */}
+      {Array.from({ length: 7 }, (_, i) => (
         <motion.div
-          animate={{ scale: [1, 1.08, 1] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="w-[400px] h-[250px] bg-rose-500/8 blur-[140px] rounded-full"
-        />
-      </div>
-
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="relative rounded-[2rem] border border-rose-300/15 bg-gradient-to-br from-[#1c0a15]/80 to-[#10050b]/80 p-8 sm:p-10 md:p-12 shadow-[0_0_60px_-20px_rgba(244,63,94,0.1)] backdrop-blur-xl overflow-hidden">
-          {/* Corazones interactivos flotando en el fondo */}
-          <HeartParticles />
-          <div className="relative z-10 grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
-          
-          {/* TEXTO */}
-          <motion.div 
-            className="space-y-6"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs uppercase tracking-wider text-white/60">
-              <Gift className="w-3.5 h-3.5 text-rose-300" />
-              Edicion limitada
-            </div>
-
-            <div>
-              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
-                <span className="text-white">Regalale a mama </span>
-                <span className="text-rose-400">su pagina web</span>
-              </h2>
-              <p className="mt-4 text-sm sm:text-base text-white/60 max-w-sm leading-relaxed">
-                Lleva su negocio al siguiente nivel con una presencia digital moderna, rapida y disenada para vender.
-              </p>
-            </div>
-
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                onClick={handleOfferClaim}
-                className="group h-12 sm:h-14 px-8 rounded-xl bg-gradient-to-r from-rose-400 via-pink-400 to-rose-400 bg-[length:200%_auto] text-white font-bold text-sm sm:text-base transition-all hover:bg-[100%_auto] shadow-[0_0_20px_rgba(244,63,94,0.2)] hover:shadow-[0_0_30px_rgba(244,63,94,0.3)] hover:-translate-y-0.5"
-              >
-                <span className="flex items-center gap-2">
-                  ¡Reclamar Promoción!
-                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-                </span>
-              </Button>
-            </motion.div>
-
-            {/* CRONOMETRO EN TEXTO - MINIMALISTA */}
-            {!expired && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="mt-8 pt-8 border-t border-white/10"
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <Clock className="w-4 h-4 text-rose-400/60" />
-                  <span className="text-xs uppercase tracking-widest text-white/50 font-medium">
-                    Disponible por
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <TimeUnit value={d} label="dias" />
-                  <span className="text-white/30 text-lg font-light">:</span>
-                  <TimeUnit value={h} label="hrs" />
-                  <span className="text-white/30 text-lg font-light">:</span>
-                  <TimeUnit value={m} label="min" />
-                  <span className="text-white/30 text-lg font-light">:</span>
-                  <TimeUnit value={s} label="seg" />
-                </div>
-              </motion.div>
-            )}
-          </motion.div>
-
-          {/* IMAGEN */}
-          <motion.div 
-            className="relative flex justify-center"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            <motion.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-              className="relative w-[280px] h-[280px] sm:w-[320px] sm:h-[320px]"
-            >
-              <Image
-                src={mascotaOff}
-                alt="Mascota"
-                fill
-                className="object-contain drop-shadow-lg"
-              />
-            </motion.div>
-          </motion.div>
+          key={i}
+          aria-hidden
+          style={{
+            position: "absolute",
+            left: `calc(${i} * 100% / 7)`,
+            top: "-100%",
+            width: "calc(100% / 7)",
+            height: "300%",
+            zIndex: 0,
+          }}
+          animate={{ y: i % 2 === 0 ? ["0%", "-30%"] : ["0%", "30%"] }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "linear",
+          }}
+        >
+          <div style={{ position: "relative", width: "100%", height: "100%" }}>
+            <Image
+              src={`/mundial/${i + 1}.png`}
+              alt=""
+              fill
+              style={{ objectFit: "cover", objectPosition: "center" }}
+              sizes="calc(100vw / 7)"
+              priority={i < 2}
+            />
           </div>
-        </div>
+        </motion.div>
+      ))}
+
+      {/* ═══════════════════════════════════════════
+          z:1 — OVERLAY oscuro encima de las tiras
+      ═══════════════════════════════════════════ */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(8, 8, 24, 0.72)",
+          zIndex: 1,
+        }}
+      />
+
+      {/* ═══════════════════════════════════════════
+          z:2+ — TODO EL CONTENIDO EXISTENTE
+      ═══════════════════════════════════════════ */}
+
+      {/* Glow aura detrás de la mascota */}
+      <motion.div
+        aria-hidden
+        animate={{ scale: [1, 1.14, 1], opacity: [0.22, 0.42, 0.22] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          position: "absolute",
+          right: "8%",
+          top: "0",
+          width: "55%",
+          height: "100%",
+          background:
+            "radial-gradient(ellipse 55% 65% at 65% 55%, rgba(124,58,237,0.32) 0%, rgba(212,160,23,0.07) 50%, transparent 78%)",
+          zIndex: 2,
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Segundo glow dorado bajo la mascota */}
+      <motion.div
+        aria-hidden
+        animate={{ scale: [1, 1.08, 1], opacity: [0.12, 0.22, 0.12] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+        style={{
+          position: "absolute",
+          right: "18%",
+          bottom: "-5%",
+          width: "38%",
+          height: "55%",
+          background:
+            "radial-gradient(ellipse 70% 60% at 50% 90%, rgba(212,160,23,0.28) 0%, transparent 70%)",
+          zIndex: 2,
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Círculos concéntricos — rotación lenta */}
+      <motion.svg
+        aria-hidden
+        animate={{ rotate: 360 }}
+        transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
+        style={{
+          position: "absolute",
+          top: "-100px",
+          right: "12%",
+          zIndex: 2,
+          pointerEvents: "none",
+          transformOrigin: "310px 360px",
+        }}
+        width="620" height="720" viewBox="0 0 620 720" fill="none"
+      >
+        {[310, 248, 186, 124].map((r, i) => (
+          <circle key={i} cx="310" cy="360" r={r}
+            stroke="#7C3AED" strokeOpacity={0.05 + i * 0.02} strokeWidth="1" fill="none" />
+        ))}
+      </motion.svg>
+
+      {/* Dot grid — esquina inferior izquierda */}
+      <svg
+        aria-hidden
+        style={{ position: "absolute", bottom: 0, left: 0, zIndex: 2, pointerEvents: "none" }}
+        width="240" height="240"
+      >
+        <defs>
+          <pattern id="munDots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1.3" fill="rgba(255,255,255,0.05)" />
+          </pattern>
+        </defs>
+        <rect width="240" height="240" fill="url(#munDots)" />
+      </svg>
+
+      {/* "2026" watermark pulsante */}
+      <motion.div
+        aria-hidden
+        className={bebas.className}
+        animate={{ opacity: [0.04, 0.09, 0.04] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          position: "absolute",
+          bottom: "-16px",
+          left: "-8px",
+          fontSize: "clamp(120px, 22vw, 290px)",
+          color: "#7C3AED",
+          lineHeight: 1,
+          userSelect: "none",
+          zIndex: 2,
+          letterSpacing: "-4px",
+        }}
+      >
+        2026
+      </motion.div>
+
+      {/* Mascota — flotando */}
+      <div
+        style={{
+          position: "absolute",
+          right: "20%",
+          bottom: 0,
+          height: "90%",
+          zIndex: 10,
+          display: "flex",
+          alignItems: "flex-end",
+        }}
+      >
+        <motion.div
+          style={{ height: "100%", display: "flex", alignItems: "flex-end" }}
+          animate={{ y: [0, -22, 0] }}
+          transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Image
+            src="/mundial.png"
+            alt="Mascota Minda Code levantando la copa del mundo"
+            width={1024}
+            height={1536}
+            priority
+            style={{
+              height: "100%",
+              width: "auto",
+              objectFit: "contain",
+              mixBlendMode: "screen",
+            }}
+          />
+        </motion.div>
       </div>
+
+      {/* Zona superior izquierda — Tag + Headline */}
+      <div
+        style={{
+          position: "absolute",
+          top: "clamp(72px, 10vh, 110px)",
+          left: "6%",
+          zIndex: 5,
+          maxWidth: "52%",
+        }}
+      >
+        <motion.div
+          {...fadeUp(0.15)}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            marginBottom: "clamp(10px, 1.6vw, 20px)",
+          }}
+        >
+          <motion.span
+            animate={{ opacity: [1, 0.2, 1] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+            style={{
+              display: "inline-block",
+              width: "7px",
+              height: "7px",
+              borderRadius: "50%",
+              backgroundColor: "#D4A017",
+              flexShrink: 0,
+            }}
+          />
+          <p
+            style={{
+              fontFamily: "var(--font-sans)",
+              fontSize: "clamp(8px, 0.9vw, 11px)",
+              letterSpacing: "0.24em",
+              color: "#D4A017",
+              textTransform: "uppercase",
+              fontWeight: 600,
+              margin: 0,
+            }}
+          >
+            MINDA CODE × MUNDIAL 2026
+          </p>
+        </motion.div>
+
+        <motion.h2
+          {...fadeUp(0.3)}
+          className={bebas.className}
+          style={{
+            fontSize: "clamp(72px, 12.5vw, 148px)",
+            lineHeight: 0.84,
+            letterSpacing: "-1px",
+            textTransform: "uppercase",
+            margin: 0,
+          }}
+        >
+          <motion.span
+            style={{ color: "#FFFFFF", display: "block" }}
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+          >
+            DEBUT
+          </motion.span>
+          <motion.span
+            style={{ color: "#7C3AED", display: "block" }}
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.45 }}
+          >
+            DIGITAL
+          </motion.span>
+        </motion.h2>
+      </div>
+
+      {/* Zona copy + CTA + pills */}
+      <motion.div
+        {...fadeUp(0.55)}
+        style={{
+          position: "absolute",
+          top: "55%",
+          left: "6%",
+          right: "40%",
+          transform: "translateY(-50%)",
+          zIndex: 4,
+        }}
+      >
+        <motion.div
+          initial={{ scaleX: 0, opacity: 0 }}
+          whileInView={{ scaleX: 1, opacity: 0.42 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
+          style={{
+            width: "100%",
+            maxWidth: "500px",
+            height: "1px",
+            background: "#D4A017",
+            marginBottom: "clamp(10px, 1.4vw, 18px)",
+            transformOrigin: "left",
+          }}
+        />
+
+        <p
+          style={{
+            fontFamily: "var(--font-sans)",
+            fontSize: "clamp(14px, 1.6vw, 20px)",
+            color: "#FFFFFF",
+            fontWeight: 700,
+            margin: "0 0 clamp(5px, 0.7vw, 9px)",
+            lineHeight: 1.3,
+          }}
+        >
+          Tu página web profesional · gratis
+        </p>
+
+        <p
+          style={{
+            fontFamily: "var(--font-sans)",
+            fontSize: "clamp(10px, 1.1vw, 13px)",
+            color: "rgba(212,160,23,0.85)",
+            fontWeight: 600,
+            margin: "0 0 clamp(16px, 2.2vw, 26px)",
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+          }}
+        >
+          ⚡ Edición limitada — solo 5 cupos disponibles
+        </p>
+
+        <motion.button
+          onClick={handleCTA}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.96 }}
+          animate={{
+            boxShadow: [
+              "0 0 24px rgba(212,160,23,0.4), 0 0 60px rgba(212,160,23,0.12)",
+              "0 0 40px rgba(212,160,23,0.65), 0 0 80px rgba(212,160,23,0.22)",
+              "0 0 24px rgba(212,160,23,0.4), 0 0 60px rgba(212,160,23,0.12)",
+            ],
+          }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "clamp(8px, 0.9vw, 12px)",
+            padding: "clamp(11px, 1.4vw, 16px) clamp(22px, 2.8vw, 36px)",
+            background: "linear-gradient(135deg, #C8960F 0%, #F5C842 50%, #D4A017 100%)",
+            border: "none",
+            borderRadius: "100px",
+            fontFamily: "var(--font-sans)",
+            fontSize: "clamp(11px, 1.2vw, 15px)",
+            fontWeight: 800,
+            color: "#080818",
+            cursor: "pointer",
+            letterSpacing: "0.05em",
+            textTransform: "uppercase",
+          }}
+        >
+          Quiero la mía gratis
+          <span style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "clamp(20px, 2.2vw, 26px)",
+            height: "clamp(20px, 2.2vw, 26px)",
+            borderRadius: "50%",
+            background: "rgba(8,8,24,0.18)",
+            fontSize: "clamp(10px, 1.1vw, 14px)",
+            fontWeight: 900,
+          }}>
+            →
+          </span>
+        </motion.button>
+
+        <div style={{ marginTop: "22px" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "clamp(5px, 0.55vw, 7px)", marginBottom: "clamp(8px, 1vw, 12px)" }}>
+            {PILLS.map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  background: "rgba(255,255,255,0.05)",
+                  borderRadius: "100px",
+                  padding: "clamp(3px, 0.45vw, 6px) clamp(9px, 1.1vw, 14px)",
+                  fontSize: "clamp(8px, 0.85vw, 11px)",
+                  color: "rgba(255,255,255,0.68)",
+                  fontFamily: "var(--font-sans)",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: "clamp(10px, 1.1vw, 14px)", color: "#D4A017", fontWeight: 600, letterSpacing: "0.1em", margin: 0 }}>
+            mindacode.com
+          </p>
+        </div>
+      </motion.div>
+
     </section>
   );
 }
