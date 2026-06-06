@@ -7,7 +7,6 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ScrollToTop } from "@/components/layout/scroll-to-top";
 import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
-import { ScrollHyperspace } from "@/components/ui/scroll-hyperspace";
 import { Hero } from "@/components/sections/hero";
 import { TrustSection } from "@/components/sections/trust";
 import { ServicesSection } from "@/components/sections/services";
@@ -15,8 +14,8 @@ import { PortfolioSection } from "@/components/sections/portfolio";
 import { ProcessSection } from "@/components/sections/process";
 import { TechStackSection } from "@/components/sections/tech-stack";
 import { AboutSection } from "@/components/sections/about";
+import { BrandFilmSection } from "@/components/sections/brand-film";
 import { ContactSection } from "@/components/sections/contact";
-import { CtaBanner } from "@/components/sections/cta-banner";
 import { FathersDayBanner } from "@/components/sections/fathers-day-banner";
 import { useT } from "@/lib/i18n";
 import { smoothScrollTo } from "@/lib/utils";
@@ -82,7 +81,6 @@ function MobileFloatingCTA() {
 export default function HomePage() {
   return (
     <>
-      <ScrollHyperspace />
       <SpotlightCursor />
       <Header />
       <main className="relative">
@@ -116,12 +114,12 @@ export default function HomePage() {
           <AboutSection />
         </RevealOnScroll>
 
-        <RevealOnScroll delay={0.1}>
-          <ContactSection />
+        <RevealOnScroll delay={0.05}>
+          <BrandFilmSection />
         </RevealOnScroll>
 
-        <RevealOnScroll>
-          <CtaBanner />
+        <RevealOnScroll delay={0.1}>
+          <ContactSection />
         </RevealOnScroll>
       </main>
       <Footer />

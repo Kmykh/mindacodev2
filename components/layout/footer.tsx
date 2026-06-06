@@ -1,10 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Instagram, ArrowUpRight, ArrowUp } from "lucide-react";
-import { useT } from "@/lib/i18n";
+import { Instagram } from "lucide-react";
 import { AnimatedLogo } from "@/components/ui/animated-logo";
+import { smoothScrollTo } from "@/lib/utils";
 
+/* ── Social icons ── */
 const TikTokIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
@@ -19,116 +20,87 @@ const LinkedInIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const socialLinks = [
-  { name: "Instagram", icon: Instagram, href: "https://instagram.com/mindacode" },
-  { name: "TikTok", icon: TikTokIcon, href: "https://tiktok.com/@mindacode" },
-  { name: "LinkedIn", icon: LinkedInIcon, href: "https://linkedin.com/company/mindacode" },
+const SOCIALS = [
+  { name: "Instagram", icon: Instagram,   href: "https://instagram.com/mindacode" },
+  { name: "TikTok",    icon: TikTokIcon,  href: "https://tiktok.com/@mindacode" },
+  { name: "LinkedIn",  icon: LinkedInIcon, href: "https://linkedin.com/company/mindacode" },
+];
+
+const NAV = [
+  { label: "Servicios",  id: "services"  },
+  { label: "Portafolio", id: "portfolio" },
+  { label: "Proceso",    id: "process"   },
+  { label: "FAQ",        id: "faq"       },
+  { label: "Nosotros",   id: "about"     },
+  { label: "Contacto",   id: "contact"   },
 ];
 
 export function Footer() {
-  const { t } = useT();
-  const year = new Date().getFullYear();
-
-  const footerLinks = [
-    {
-      title: t("footer.nav.title"),
-      links: [
-        { label: t("header.services"), href: "#services" },
-        { label: t("header.portfolio"), href: "#portfolio" },
-        { label: t("header.process"), href: "#process" },
-        { label: t("header.contact"), href: "#contact" },
-      ]
-    },
-    {
-      title: t("footer.company.title"),
-      links: [
-        { label: t("footer.company.about"), href: "#about" },
-        { label: t("header.contact"), href: "#contact" },
-      ]
-    }
-  ];
 
   return (
-    <footer className="relative mt-0 overflow-hidden border-t border-white/[0.06] bg-black/40 pt-16 pb-8 sm:pt-20 sm:pb-10">
+    <footer style={{ background:"#07071a", borderTop:"1px solid rgba(255,255,255,0.05)", position:"relative", overflow:"hidden" }}>
       {/* Ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 h-40 w-1/3 bg-accent/4 blur-[100px] pointer-events-none" />
+      <div style={{ position:"absolute", top:0, left:"50%", transform:"translateX(-50%)", width:"40%", height:"160px", background:"rgba(124,58,237,0.06)", filter:"blur(80px)", pointerEvents:"none" }} />
 
-      <div className="section-container relative z-10">
-        {/* Top — Brand + CTA */}
-        <div className="mb-12 flex flex-col items-center gap-6 text-center md:mb-16">
+      <div style={{ maxWidth:"1200px", margin:"0 auto", padding:"72px 56px 40px", position:"relative", zIndex:1 }}>
+
+        {/* ── Brand block ── */}
+        <motion.div
+          initial={{ opacity:0, y:16 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} transition={{ duration:0.5 }}
+          style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"16px", marginBottom:"56px" }}
+        >
           <AnimatedLogo textClassName="text-4xl sm:text-5xl" />
-          <p className="max-w-md text-sm text-foreground-muted leading-relaxed sm:text-base">
-            {t("footer.tagline")}
+          <p style={{ fontFamily:"var(--font-sans)", fontWeight:300, fontSize:"14px", color:"rgba(255,255,255,0.35)", textAlign:"center", maxWidth:"360px", lineHeight:1.75, margin:0 }}>
+            No trabajamos para cumplir.<br />Creamos para dejar huella.
           </p>
-          <div className="flex gap-3">
-            {socialLinks.map((social) => (
+
+          {/* Social icons */}
+          <div style={{ display:"flex", gap:"10px", marginTop:"4px" }}>
+            {SOCIALS.map(s => (
               <a
-                key={social.name}
-                href={social.href}
+                key={s.name}
+                href={s.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-all duration-300 hover:bg-accent hover:border-accent hover:text-white hover:scale-110 text-foreground-muted"
-                aria-label={social.name}
+                aria-label={s.name}
+                style={{ display:"flex", alignItems:"center", justifyContent:"center", width:"40px", height:"40px", borderRadius:"50%", border:"1px solid rgba(255,255,255,0.08)", background:"rgba(255,255,255,0.03)", color:"rgba(255,255,255,0.4)", transition:"all 0.25s", textDecoration:"none" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = "rgba(124,58,237,0.15)"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(124,58,237,0.5)"; (e.currentTarget as HTMLAnchorElement).style.color = "#a78bfa"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = "rgba(255,255,255,0.03)"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.08)"; (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.4)"; }}
               >
-                <social.icon className="h-5 w-5" />
+                <s.icon className="h-4 w-4" />
               </a>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Links Grid */}
-        <div className="mb-12 grid grid-cols-2 gap-8 sm:grid-cols-3 md:gap-12">
-          {footerLinks.map((section) => (
-            <div key={section.title} className="space-y-4">
-              <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
-                {section.title}
-              </h4>
-              <ul className="space-y-3">
-                {section.links.map((link) => (
-                  <li key={link.label}>
-                    <a
-                      href={link.href}
-                      className="group flex items-center text-sm text-foreground-muted transition-colors hover:text-white w-fit"
-                    >
-                      <ArrowUpRight className="mr-1.5 h-3 w-3 opacity-0 -translate-x-2 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0" />
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
+        {/* ── Separator ── */}
+        <div style={{ height:"1px", background:"rgba(255,255,255,0.05)", marginBottom:"40px" }} />
+
+        {/* ── Nav links ── */}
+        <motion.nav
+          initial={{ opacity:0, y:10 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} transition={{ duration:0.4, delay:0.1 }}
+          style={{ display:"flex", flexWrap:"wrap", justifyContent:"center", gap:"8px 32px", marginBottom:"48px" }}
+        >
+          {NAV.map(item => (
+            <button
+              key={item.id}
+              onClick={() => smoothScrollTo(item.id)}
+              style={{ background:"none", border:"none", cursor:"pointer", fontFamily:"var(--font-sans)", fontWeight:400, fontSize:"13px", color:"rgba(255,255,255,0.38)", padding:"4px 0", transition:"color 0.2s", letterSpacing:"0.02em" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "#ffffff"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.38)"; }}
+            >
+              {item.label}
+            </button>
           ))}
+        </motion.nav>
 
-          {/* Contact column */}
-          <div className="space-y-4">
-            <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
-              {t("footer.contact.title")}
-            </h4>
-            <ul className="space-y-3 text-sm text-foreground-muted">
-              <li>
-                <a href="mailto:mindacode@gmail.com" className="hover:text-white transition-colors">mindacode@gmail.com</a>
-              </li>
-              <li>
-                <a href="https://wa.me/51926948155" target="_blank" rel="noopener noreferrer" className="hover:text-green-400 transition-colors">+51 926 948 155</a>
-              </li>
-              <li>{t("contact.location")}</li>
-            </ul>
-          </div>
+        {/* ── Copyright ── */}
+        <div style={{ borderTop:"1px solid rgba(255,255,255,0.05)", padding:"16px 0 24px", textAlign:"center" }}>
+          <p style={{ fontFamily:"var(--font-sans)", fontWeight:300, fontSize:"13px", color:"rgba(255,255,255,0.4)", margin:0 }}>
+            © 2026 Minda Code · Hecho en Lima, Perú
+          </p>
         </div>
 
-        {/* Bottom bar */}
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-white/[0.06] pt-8 text-xs text-foreground-muted md:flex-row">
-          <p>© {year} Minda Code. {t("footer.copyright")}</p>
-
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-foreground-muted transition-all hover:border-accent/30 hover:text-accent active:scale-95"
-            aria-label="Volver arriba"
-          >
-            <ArrowUp className="h-3 w-3" />
-            {t("footer.backToTop")}
-          </button>
-        </div>
       </div>
     </footer>
   );

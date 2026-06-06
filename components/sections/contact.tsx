@@ -1,242 +1,499 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { CheckCircle2, MessageCircle, Send, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useState, useRef } from "react";
-import { useT } from "@/lib/i18n";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
-export function ContactSection() {
-  const { t } = useT();
-  const serviceOptions = t("contact.serviceOpts").split("|");
-  const [formData, setFormData] = useState({
-    name: "",    email: "",    service: "",
-    budget: "",
-    message: "",
-  });
-  const [submitted, setSubmitted] = useState(false);
-  const [sending, setSending] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
+/* ════════════════════════════════════════════
+   Shared data
+   ════════════════════════════════════════════ */
+const REASSURANCE = [
+  { text:"Respondemos en ",        bold:"menos de 24h",           end:"" },
+  { text:"Primera reunión ",       bold:"gratis y sin compromiso", end:"" },
+  { text:"Directo con el dev, ",   bold:"sin intermediarios",      end:"" },
+  { text:"Basados en ",            bold:"Lima, Perú",               end:"" },
+];
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSending(true);
+const SERVICES = [
+  { title:"Chatbot IA",            sub:"WhatsApp · Instagram · Web" },
+  { title:"Landing Page / Web",    sub:"Presencia profesional" },
+  { title:"App Móvil",             sub:"iOS y Android" },
+  { title:"E-commerce",            sub:"Tienda online completa" },
+  { title:"Automatizaciones",      sub:"n8n · Zapier · API" },
+  { title:"Aún no lo tengo claro", sub:"Hablemos y te oriento" },
+];
 
-    const lines = [
-      `${t("contact.wa.header")}`,
-      `${t("contact.wa.from")}`,
-      "",
-      `${t("contact.wa.name")} ${formData.name}`,
-      `Email: ${formData.email}`,
-      `${t("contact.wa.service")} ${formData.service}`,
-      `${t("contact.wa.budget")} ${formData.budget}`,
-      "",
-      `${t("contact.wa.message")}`,
-      formData.message,
-    ];
+/* ════════════════════════════════════════════
+   Types
+   ════════════════════════════════════════════ */
+type Flow = null | "proyecto" | "debut";
 
-    const text = encodeURIComponent(lines.join("\n"));
-    const waUrl = `https://wa.me/51926948155?text=${text}`;
-
-    setTimeout(() => {
-      window.open(waUrl, "_blank", "noopener,noreferrer");
-      setSending(false);
-      setSubmitted(true);
-    }, 250);
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const inputStyles =
-    "w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder:text-foreground-muted/50 transition-all focus:border-accent/50 focus:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-accent/20";
-  const selectStyles = `${inputStyles} appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%23a1a1aa%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_16px_center] bg-no-repeat pr-10 [&>option]:bg-[#1a1a1a] [&>option]:text-white`;
-
+/* ════════════════════════════════════════════
+   Pure UI atoms  (defined outside to avoid remounts)
+   ════════════════════════════════════════════ */
+function FieldLabel({ text }: { text: string }) {
   return (
-    <section id="contact" className="relative overflow-hidden py-16 md:py-28">
-      <div
-        className="absolute right-0 bottom-0 h-[450px] w-[450px] rounded-full bg-accent/4 blur-[100px] pointer-events-none"
-        style={{ transform: "translateZ(0)" }}
-      />
+    <p style={{ fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"10px", color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"2px", margin:"0 0 8px" }}>
+      {text}
+    </p>
+  );
+}
 
-      <div className="relative z-10 section-container">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto w-full max-w-3xl"
-        >
-          <div className="mb-8 space-y-4 text-center">
-            <p className="text-sm uppercase tracking-[0.3em] text-accent font-medium">{t("contact.label")}</p>
-            <h2 className="text-3xl font-semibold leading-tight sm:text-4xl md:text-6xl">
-              {t("contact.h2.1")} <br className="hidden sm:block" />
-              <span className="text-gradient-flow text-glow-pulse">{t("contact.h2.2")}</span>
-            </h2>
-            <p className="mx-auto max-w-2xl text-base text-foreground-muted sm:text-lg">{t("contact.sub")}</p>
-          </div>
+function StepLabel({ label }: { label: string }) {
+  return (
+    <p style={{ fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"10px", color:"rgba(124,58,237,0.6)", textTransform:"uppercase", letterSpacing:"3px", margin:"0 0 10px" }}>
+      {label}
+    </p>
+  );
+}
 
+function Question({ text }: { text: string }) {
+  return (
+    <h3 style={{ fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"22px", color:"#ffffff", lineHeight:1.25, margin:"0 0 20px", letterSpacing:"-0.01em" }}>
+      {text}
+    </h3>
+  );
+}
+
+function PrimaryBtn({ label, onClick, disabled }: { label:string; onClick:()=>void; disabled?:boolean }) {
+  return (
+    <button onClick={onClick} disabled={disabled} style={{
+      background: disabled ? "rgba(124,58,237,0.3)" : "#7C3AED",
+      color:"#ffffff", fontFamily:"var(--font-sans)", fontWeight:600, fontSize:"14px",
+      borderRadius:"10px", padding:"14px 28px", border:"none",
+      cursor: disabled ? "not-allowed" : "pointer", marginTop:"20px", transition:"background 0.2s",
+    }}>
+      {label}
+    </button>
+  );
+}
+
+function BackBtn({ onClick }: { onClick:()=>void }) {
+  return (
+    <button onClick={onClick} style={{
+      background:"transparent", border:"none", cursor:"pointer",
+      fontFamily:"var(--font-sans)", fontWeight:300, fontSize:"13px",
+      color:"rgba(255,255,255,0.35)", marginTop:"10px", padding:"4px 0",
+    }}>
+      ← Volver
+    </button>
+  );
+}
+
+function YNBtn({ label, selected, isYes, onClick }: { label:string; selected:boolean; isYes:boolean; onClick:()=>void }) {
+  return (
+    <button
+      className={`ct-yn-btn${selected ? (isYes ? " ct-yn-yes-active" : " ct-yn-no-active") : ""}`}
+      onClick={onClick}
+    >
+      {label}
+    </button>
+  );
+}
+
+function BlockMessage({ title, body, btnLabel, onAlt }: { title:string; body:string; btnLabel:string; onAlt:()=>void }) {
+  return (
+    <motion.div
+      initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:8 }}
+      transition={{ duration:0.25 }}
+      style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"10px", padding:"20px", marginTop:"12px" }}
+    >
+      <p style={{ fontFamily:"var(--font-sans)", fontWeight:600, fontSize:"14px", color:"#ffffff", margin:"0 0 8px" }}>{title}</p>
+      <p style={{ fontFamily:"var(--font-sans)", fontWeight:300, fontSize:"13px", color:"rgba(255,255,255,0.4)", margin:"0 0 14px", lineHeight:1.6 }}>{body}</p>
+      <button onClick={onAlt} style={{ background:"transparent", border:"1px solid rgba(124,58,237,0.3)", color:"#A78BFA", borderRadius:"8px", padding:"10px 20px", cursor:"pointer", fontFamily:"var(--font-sans)", fontWeight:500, fontSize:"13px" }}>
+        {btnLabel}
+      </button>
+    </motion.div>
+  );
+}
+
+/* ════════════════════════════════════════════
+   CSS
+   ════════════════════════════════════════════ */
+const STYLES = `
+.ct-input {
+  width: 100%;
+  background: #0d0d28;
+  border: 1px solid rgba(124,58,237,0.2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: #ffffff;
+  outline: none;
+  transition: border-color 0.25s;
+  box-sizing: border-box;
+}
+.ct-input::placeholder { color: rgba(255,255,255,0.22); }
+.ct-input:focus { border-color: #7C3AED; }
+
+.ct-opt {
+  background: #0d0d28;
+  border: 1px solid rgba(124,58,237,0.2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  text-align: left;
+  width: 100%;
+}
+.ct-opt:hover     { border-color: rgba(124,58,237,0.5); }
+.ct-opt-active    { border-color: #7C3AED !important; background: rgba(124,58,237,0.15) !important; }
+
+.ct-flow-card {
+  background: #0d0d28;
+  border: 1px solid rgba(124,58,237,0.2);
+  border-radius: 12px;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  text-align: left;
+  width: 100%;
+}
+.ct-flow-card:hover       { border-color: rgba(124,58,237,0.5); }
+.ct-flow-card-active      { border-color: #7C3AED !important; background: rgba(124,58,237,0.12) !important; }
+.ct-flow-debut:hover      { border-color: rgba(212,160,23,0.6) !important; }
+.ct-flow-debut-active     { border-color: #D4A017 !important; background: rgba(212,160,23,0.08) !important; }
+
+.ct-yn-btn {
+  background: #0d0d28;
+  border: 1px solid rgba(124,58,237,0.3);
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 10px 24px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 13px;
+  transition: border-color 0.2s, background 0.2s;
+  flex: 1;
+}
+.ct-yn-yes-active { border-color: #7C3AED !important; background: rgba(124,58,237,0.15) !important; }
+.ct-yn-no-active  { border-color: rgba(255,255,255,0.2) !important; background: rgba(255,255,255,0.04) !important; }
+
+@media(max-width:768px){
+  .ct-wrap       { flex-direction: column !important; padding: 48px 24px !important; }
+  .ct-left       { width: 100% !important; margin-bottom: 48px; }
+  .ct-right      { width: 100% !important; }
+  .ct-svc-grid   { grid-template-columns: 1fr !important; }
+}
+`;
+
+/* ════════════════════════════════════════════
+   Main component
+   ════════════════════════════════════════════ */
+export function ContactSection() {
+  const [step,            setStep]    = useState(1);
+  const [flow,            setFlow]    = useState<Flow>(null);
+  const [selectedService, setSvc]     = useState("");
+  const [name,            setName]    = useState("");
+  const [message,         setMsg]     = useState("");
+  const [business,        setBiz]     = useState("");
+  const [answers, setAnswers] = useState<{ activeBusiness: null|boolean; hasDomain: null|boolean }>({
+    activeBusiness: null,
+    hasDomain: null,
+  });
+
+  /* Derived Flujo B state */
+  const blockedBusiness = answers.activeBusiness === false;
+  const blockedDomain   = answers.hasDomain === false && !blockedBusiness;
+  const showQ2          = answers.activeBusiness === true;
+  const canContinue     = answers.activeBusiness === true && answers.hasDomain === true;
+
+  /* Progress bar */
+  const totalBars = flow === "debut" ? 2 : 3;
+  const activeBar = flow === "debut" && step > 2 ? 2 : step;
+
+  /* WhatsApp senders */
+  const sendA = () => {
+    const text =
+      `Hola Minda Code, los contacto desde su pagina web.\n\n` +
+      `Mi nombre es ${name || "un cliente interesado"}.\n` +
+      `Me interesa: ${selectedService}.\n` +
+      `${message ? `${message}\n` : ""}` +
+      `\nQueria coordinar una llamada para contarles mas, cuando tienen disponibilidad?`;
+    window.open(`https://wa.me/51926948155?text=${encodeURIComponent(text)}`, "_blank");
+  };
+
+  const sendB = () => {
+    const text =
+      `Hola Minda Code, los contacto desde su pagina web.\n\n` +
+      `Quiero postular a la Promo Debut Digital.\n\n` +
+      `Soy ${name || "un emprendedor interesado"}` +
+      `${business ? ` y mi negocio es: ${business}.` : "."}\n\n` +
+      `Mi negocio ya esta activo y quiero tener una web propia.\n\n` +
+      `Podrian darme mas informacion para dar el primer paso?`;
+    window.open(`https://wa.me/51926948155?text=${encodeURIComponent(text)}`, "_blank");
+  };
+
+  const goToFlowA = () => {
+    setFlow("proyecto");
+    setSvc("");
+    setStep(2);
+  };
+
+  /* Slide animation config */
+  const slide = (dir: 1 | -1) => ({
+    initial:    { opacity:0, x: 24*dir },
+    animate:    { opacity:1, x:0 },
+    exit:       { opacity:0, x:-24*dir },
+    transition: { duration:0.3 },
+  });
+
+  /* ══ Render ══ */
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
+      <section id="contact">
+        <div className="ct-wrap" style={{ display:"flex", gap:"64px", padding:"80px 56px", maxWidth:"1200px", margin:"0 auto" }}>
+
+          {/* ══ LEFT ══ */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            className="ct-left"
+            initial={{ opacity:0, x:-24 }} whileInView={{ opacity:1, x:0 }} viewport={{ once:true }} transition={{ duration:0.55 }}
+            style={{ width:"42%", flexShrink:0 }}
           >
-            <div className="relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:p-7 md:p-8">
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-
-              {submitted ? (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex flex-col items-center gap-6 py-12 text-center"
-                >
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
-                    className="flex h-20 w-20 items-center justify-center rounded-full bg-green-500/15 text-green-400"
-                  >
-                    <CheckCircle2 className="h-10 w-10" />
-                  </motion.div>
-
-                  <div className="space-y-2">
-                    <h3 className="text-2xl font-bold text-white">{t("contact.form.success.title")}</h3>
-                    <p className="text-foreground-muted">{t("contact.form.success.sub")}</p>
-                  </div>
-
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setSubmitted(false);
-                      setFormData({ name: "", email: "", service: "", budget: "", message: "" });
-                    }}
-                  >
-                    {t("contact.form.success.action")}
-                  </Button>
-                </motion.div>
-              ) : (
-                <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-bold text-white sm:text-2xl">{t("contact.form.title")}</h3>
-                    <p className="text-sm text-foreground-muted">{t("contact.form.sub")}</p>
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <label htmlFor="name" className="text-xs font-medium uppercase tracking-wider text-foreground-muted">
-                        {t("contact.form.name")}
-                      </label>
-                      <input
-                        id="name"
-                        name="name"
-                        type="text"
-                        required
-                        autoComplete="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        className={inputStyles}
-                        placeholder={t("contact.form.name.ph")}
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-foreground-muted">
-                        Email
-                      </label>
-                      <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        required
-                        value={formData.email}
-                        onChange={handleChange}
-                        className={inputStyles}
-                        placeholder="tu@email.com"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <label htmlFor="budget" className="text-xs font-medium uppercase tracking-wider text-foreground-muted">
-                        {t("contact.form.budget")}
-                      </label>
-                      <input
-                        id="budget"
-                        name="budget"
-                        type="text"
-                        required
-                        value={formData.budget}
-                        onChange={handleChange}
-                        className={inputStyles}
-                        placeholder={t("contact.form.budget.ph")}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label htmlFor="service" className="text-xs font-medium uppercase tracking-wider text-foreground-muted">
-                      {t("contact.form.service")}
-                    </label>
-                    <select
-                      id="service"
-                      name="service"
-                      required
-                      value={formData.service}
-                      onChange={handleChange}
-                      className={selectStyles}
-                    >
-                      <option value="" disabled>
-                        {t("contact.form.select")}
-                      </option>
-                      {serviceOptions.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label htmlFor="message" className="text-xs font-medium uppercase tracking-wider text-foreground-muted">
-                      {t("contact.form.message")}
-                    </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      rows={4}
-                      required
-                      value={formData.message}
-                      onChange={handleChange}
-                      className={`${inputStyles} resize-none`}
-                      placeholder={t("contact.form.message.ph")}
-                    />
-                  </div>
-
-                  <Button type="submit" className="w-full h-14 text-base font-semibold group shine-hover" disabled={sending}>
-                    {sending ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        {t("contact.form.sending")}
-                      </>
-                    ) : (
-                      <>
-                        <MessageCircle className="mr-2 h-5 w-5" />
-                        {t("contact.form.submit")}
-                        <Send className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                      </>
-                    )}
-                  </Button>
-                </form>
-              )}
-            </div>
+            <p style={{ fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"10px", color:"#7C3AED", textTransform:"uppercase", letterSpacing:"4px", margin:"0 0 24px" }}>
+              Contacto
+            </p>
+            <h2 style={{ fontFamily:"var(--font-sans)", fontWeight:900, fontSize:"38px", lineHeight:1.12, letterSpacing:"-0.025em", margin:"0 0 20px" }}>
+              <span style={{ display:"block", color:"#ffffff" }}>Tu próximo</span>
+              <span style={{ display:"block", color:"#ffffff" }}>proyecto</span>
+              <span style={{ display:"block", color:"#ffffff" }}>empieza</span>
+              <span style={{ display:"block", color:"#7C3AED" }}>aquí.</span>
+            </h2>
+            <p style={{ fontFamily:"var(--font-sans)", fontWeight:300, fontSize:"14px", color:"rgba(255,255,255,0.4)", lineHeight:1.8, margin:0, maxWidth:"340px" }}>
+              Ya sea que tengas una idea en servilleta o un negocio listo para digitalizarse. Hablemos.
+            </p>
           </motion.div>
-        </motion.div>
-      </div>
-    </section>
+
+          {/* ══ RIGHT ══ */}
+          <motion.div
+            className="ct-right"
+            initial={{ opacity:0, x:24 }} whileInView={{ opacity:1, x:0 }} viewport={{ once:true }} transition={{ duration:0.55, delay:0.1 }}
+            style={{ flex:1, minWidth:0 }}
+          >
+            {/* Progress bars */}
+            <div style={{ display:"flex", gap:"6px", marginBottom:"28px" }}>
+              {Array.from({ length: totalBars }, (_, i) => (
+                <motion.div
+                  key={`${totalBars}-${i}`}
+                  animate={{ background: i < activeBar ? "#7C3AED" : "rgba(124,58,237,0.2)" }}
+                  transition={{ duration:0.3 }}
+                  style={{ width:"24px", height:"3px", borderRadius:"2px" }}
+                />
+              ))}
+            </div>
+
+            <AnimatePresence mode="wait">
+
+              {/* ── STEP 1 — Flow chooser ── */}
+              {step === 1 && (
+                <motion.div key="step1" {...slide(1)}>
+                  <StepLabel label={flow === "debut" ? "Paso 1 de 2" : "Paso 1 de 3"} />
+                  <Question text="¿Cómo te podemos ayudar?" />
+
+                  <div style={{ display:"flex", flexDirection:"column", gap:"10px", marginBottom:"4px" }}>
+                    {/* Option A: project */}
+                    <button
+                      className={`ct-flow-card${flow === "proyecto" ? " ct-flow-card-active" : ""}`}
+                      onClick={() => setFlow("proyecto")}
+                    >
+                      <p style={{ fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"15px", color:"#ffffff", margin:"0 0 4px" }}>
+                        Tengo un proyecto
+                      </p>
+                      <p style={{ fontFamily:"var(--font-sans)", fontWeight:300, fontSize:"12px", color:"rgba(255,255,255,0.35)", margin:0 }}>
+                        Landing, App, E-commerce, Chatbot y más
+                      </p>
+                    </button>
+
+                    {/* Option B: debut */}
+                    <button
+                      className={`ct-flow-card ct-flow-debut${flow === "debut" ? " ct-flow-debut-active" : ""}`}
+                      onClick={() => setFlow("debut")}
+                      style={{ borderColor: flow === "debut" ? "#D4A017" : "rgba(212,160,23,0.3)" }}
+                    >
+                      <p style={{ fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"15px", color: flow === "debut" ? "#D4A017" : "rgba(212,160,23,0.85)", margin:"0 0 4px" }}>
+                        Promo Debut Digital
+                      </p>
+                      <p style={{ fontFamily:"var(--font-sans)", fontWeight:300, fontSize:"12px", color:"rgba(255,255,255,0.35)", margin:0 }}>
+                        Primera web profesional · Solo para negocios activos
+                      </p>
+                    </button>
+                  </div>
+
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start" }}>
+                    <PrimaryBtn label="Siguiente →" onClick={() => setStep(2)} disabled={!flow} />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ── FLUJO A — Step 2: service ── */}
+              {step === 2 && flow === "proyecto" && (
+                <motion.div key="a2" {...slide(1)}>
+                  <StepLabel label="Paso 2 de 3" />
+                  <Question text="¿Qué necesitas desarrollar?" />
+
+                  <div className="ct-svc-grid" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"10px" }}>
+                    {SERVICES.map(svc => (
+                      <button
+                        key={svc.title}
+                        className={`ct-opt${selectedService === svc.title ? " ct-opt-active" : ""}`}
+                        onClick={() => setSvc(svc.title)}
+                      >
+                        <p style={{ fontFamily:"var(--font-sans)", fontWeight:600, fontSize:"13px", color:"#ffffff", margin:"0 0 3px" }}>{svc.title}</p>
+                        <p style={{ fontFamily:"var(--font-sans)", fontWeight:300, fontSize:"11px", color:"rgba(255,255,255,0.35)", margin:0 }}>{svc.sub}</p>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start" }}>
+                    <PrimaryBtn label="Siguiente →" onClick={() => setStep(3)} disabled={!selectedService} />
+                    <BackBtn onClick={() => setStep(1)} />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ── FLUJO A — Step 3: contact ── */}
+              {step === 3 && flow === "proyecto" && (
+                <motion.div key="a3" {...slide(1)}>
+                  <StepLabel label="Paso 3 de 3" />
+                  <Question text="Cuéntanos sobre tu proyecto" />
+
+                  <div style={{ marginBottom:"14px" }}>
+                    <FieldLabel text="Tu nombre" />
+                    <input className="ct-input" type="text" placeholder="Tu nombre o el de tu negocio" value={name} onChange={e => setName(e.target.value)} />
+                  </div>
+                  <div style={{ marginBottom:"20px" }}>
+                    <FieldLabel text="¿Qué necesitas? (opcional)" />
+                    <textarea className="ct-input" placeholder="Una línea sobre tu idea o proyecto..." value={message} onChange={e => setMsg(e.target.value)} style={{ height:"90px", resize:"none", display:"block" }} />
+                  </div>
+
+                  <button onClick={sendA} style={{ width:"100%", background:"#25D366", color:"#ffffff", fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"15px", borderRadius:"10px", padding:"16px", border:"none", cursor:"pointer" }}>
+                    Enviar por WhatsApp
+                  </button>
+                  <p style={{ fontFamily:"var(--font-sans)", fontSize:"11px", color:"rgba(255,255,255,0.25)", textAlign:"center", lineHeight:1.6, margin:"10px 0 0" }}>
+                    Abre WhatsApp con tu mensaje prellenado.<br />Tú decides si enviar.
+                  </p>
+
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start" }}>
+                    <BackBtn onClick={() => setStep(2)} />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ── FLUJO B — Step 2: qualification ── */}
+              {step === 2 && flow === "debut" && (
+                <motion.div key="b2" {...slide(1)}>
+                  <StepLabel label="Paso 2 de 2" />
+                  <Question text="Antes de postular, confirma estos puntos" />
+
+                  {/* Q1 */}
+                  <div style={{ marginBottom:"16px" }}>
+                    <p style={{ fontFamily:"var(--font-sans)", fontWeight:500, fontSize:"14px", color:"rgba(255,255,255,0.75)", margin:"0 0 10px", lineHeight:1.4 }}>
+                      ¿Tu negocio está activo y operando?
+                    </p>
+                    <div style={{ display:"flex", gap:"8px" }}>
+                      <YNBtn label="Sí" isYes selected={answers.activeBusiness === true}
+                        onClick={() => setAnswers(a => ({ ...a, activeBusiness:true }))} />
+                      <YNBtn label="No" isYes={false} selected={answers.activeBusiness === false}
+                        onClick={() => setAnswers({ activeBusiness:false, hasDomain:null })} />
+                    </div>
+                  </div>
+
+                  {/* Q2 — appears after Q1 = yes */}
+                  <AnimatePresence>
+                    {showQ2 && (
+                      <motion.div
+                        key="q2"
+                        initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:8 }}
+                        transition={{ duration:0.25 }}
+                        style={{ marginBottom:"16px" }}
+                      >
+                        <p style={{ fontFamily:"var(--font-sans)", fontWeight:500, fontSize:"14px", color:"rgba(255,255,255,0.75)", margin:"0 0 10px", lineHeight:1.4 }}>
+                          ¿Quieres que tu web tenga nombre propio, como tunegocio.com?
+                        </p>
+                        <div style={{ display:"flex", gap:"8px" }}>
+                          <YNBtn label="Sí" isYes selected={answers.hasDomain === true}
+                            onClick={() => setAnswers(a => ({ ...a, hasDomain:true }))} />
+                          <YNBtn label="No" isYes={false} selected={answers.hasDomain === false}
+                            onClick={() => setAnswers(a => ({ ...a, hasDomain:false }))} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Block: no active business */}
+                  <AnimatePresence>
+                    {blockedBusiness && (
+                      <BlockMessage
+                        key="block-biz"
+                        title="La promo es para negocios activos"
+                        body="Debut Digital está diseñada para negocios que ya operan y quieren su primera presencia web profesional. Cuando tu negocio arranque, aquí estaremos."
+                        btnLabel="Tengo un proyecto en mente →"
+                        onAlt={goToFlowA}
+                      />
+                    )}
+                  </AnimatePresence>
+
+                  {/* Block: no domain */}
+                  <AnimatePresence>
+                    {blockedDomain && (
+                      <BlockMessage
+                        key="block-domain"
+                        title="El dominio es parte del paquete"
+                        body="Para tener una web profesional necesitas un dominio propio (ej. tunegocio.com). Es lo que hace que tu negocio se vea serio en línea. Si en el futuro lo tienes claro, escríbenos."
+                        btnLabel="Entendido, quiero un proyecto normal →"
+                        onAlt={goToFlowA}
+                      />
+                    )}
+                  </AnimatePresence>
+
+                  {/* Continue only when both = yes */}
+                  {canContinue && (
+                    <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start" }}>
+                      <PrimaryBtn label="Continuar →" onClick={() => setStep(3)} />
+                    </div>
+                  )}
+
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start" }}>
+                    <BackBtn onClick={() => setStep(1)} />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ── FLUJO B — Step 3: debut contact ── */}
+              {step === 3 && flow === "debut" && (
+                <motion.div key="b3" {...slide(1)}>
+                  <StepLabel label="Paso 2 de 2" />
+                  <Question text="Casi listo para postular" />
+
+                  <div style={{ marginBottom:"14px" }}>
+                    <FieldLabel text="Tu nombre" />
+                    <input className="ct-input" type="text" placeholder="Tu nombre" value={name} onChange={e => setName(e.target.value)} />
+                  </div>
+                  <div style={{ marginBottom:"20px" }}>
+                    <FieldLabel text="Tu negocio" />
+                    <textarea className="ct-input" placeholder="¿A qué se dedica tu negocio?" value={business} onChange={e => setBiz(e.target.value)} style={{ height:"70px", resize:"none", display:"block" }} />
+                  </div>
+
+                  <button onClick={sendB} style={{ width:"100%", background:"#25D366", color:"#ffffff", fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"15px", borderRadius:"10px", padding:"16px", border:"none", cursor:"pointer" }}>
+                    Enviar por WhatsApp
+                  </button>
+                  <p style={{ fontFamily:"var(--font-sans)", fontSize:"11px", color:"rgba(255,255,255,0.25)", textAlign:"center", lineHeight:1.6, margin:"10px 0 0" }}>
+                    Abre WhatsApp con tu mensaje prellenado.<br />Tú decides si enviar.
+                  </p>
+
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start" }}>
+                    <BackBtn onClick={() => setStep(2)} />
+                  </div>
+                </motion.div>
+              )}
+
+            </AnimatePresence>
+          </motion.div>
+
+        </div>
+      </section>
+    </>
   );
 }
