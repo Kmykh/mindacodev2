@@ -1,118 +1,223 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useT } from "@/lib/i18n";
-import {
-  Atom,
-  BrainCircuit,
-  CloudCog,
-  Database,
-  Smartphone,
-  Terminal
-} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 
-const techStack = [
+/* ════════════════════════════════════════════
+   Data
+   ════════════════════════════════════════════ */
+const FAQS: { hl: string; rest: string; answer: string }[] = [
   {
-    title: "Frontend Moderno",
-    icon: Atom,
-    description: "La parte visual que tus clientes usan todos los días.",
-    stack: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Framer Motion"]
+    hl:     "¿Cuánto cuesta?",
+    rest:   "",
+    answer: "El precio se adapta exactamente a lo que tu negocio necesita. No pagás por cosas que no vas a usar. En la primera reunión te damos un presupuesto claro, sin sorpresas ni letra chica.",
   },
   {
-    title: "Backend Robusto",
-    icon: Terminal,
-    description: "El motor interno que procesa reglas, usuarios y pagos.",
-    stack: ["C# .NET", "Java Spring Boot", "Node.js", "Python"]
+    hl:     "¿Cuánto tiempo",
+    rest:   " demora?",
+    answer: "Una landing page puede estar lista en 2 semanas. Una app móvil entre 6 y 10 semanas. Siempre te decimos los tiempos antes de empezar — y los cumplimos.",
   },
   {
-    title: "Cloud & DevOps",
-    icon: CloudCog,
-    description: "Servidores y despliegues automáticos para no detener tu negocio.",
-    stack: ["AWS", "Docker", "Vercel", "CI/CD", "Kubernetes"]
+    hl:     "¿Y si no me gusta",
+    rest:   " el resultado?",
+    answer: "Lo mejoramos hasta que estés conforme. No cerramos ningún proyecto hasta que digas que sí. Las revisiones están incluidas en el proceso, sin costo extra.",
   },
   {
-    title: "Mobile Nativo",
-    icon: Smartphone,
-    description: "Apps para iPhone y Android con buena experiencia de uso.",
-    stack: ["Flutter", "React Native", "Expo", "Swift", "Kotlin"]
+    hl:     "¿Necesito saber",
+    rest:   " de tecnología?",
+    answer: "Para nada. Tú traes la idea y nosotros nos encargamos de todo lo técnico. Solo necesitás tener claro qué problema querés resolver.",
   },
   {
-    title: "Data & Storage",
-    icon: Database,
-    description: "Bases de datos preparadas para crecer sin perder información.",
-    stack: ["PostgreSQL", "MongoDB", "Redis", "Supabase"]
+    hl:     "¿Qué pasa",
+    rest:   " después de que me entregan?",
+    answer: "No desaparecemos. Tenemos soporte post-entrega y planes de mantenimiento para que tu proyecto siga creciendo después del lanzamiento.",
   },
   {
-    title: "Inteligencia Artificial",
-    icon: BrainCircuit,
-    description: "Automatizaciones y asistentes inteligentes para ahorrar tiempo.",
-    stack: ["OpenAI API", "LangChain", "Pinecone", "Hugging Face"]
-  }
+    hl:     "¿Puedo ver",
+    rest:   " cómo va avanzando?",
+    answer: "Sí. Cada 2 semanas te mostramos una actualización real del proyecto. Siempre sabés en qué estamos y qué viene después.",
+  },
+  {
+    hl:     "¿Trabajan con",
+    rest:   " negocios pequeños?",
+    answer: "Es nuestro cliente principal. Emprendedores, restaurantes, boutiques, clínicas — negocios reales que quieren crecer digitalmente sin gastar de más.",
+  },
 ];
 
+const STYLES = `
+.faq-item {
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer;
+}
+.faq-item:first-child { border-top: 1px solid rgba(255,255,255,0.06); }
+.faq-icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid rgba(124,58,237,0.35);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: border-color 0.3s, background 0.3s;
+}
+.faq-item-open .faq-icon {
+  background: rgba(124,58,237,0.15);
+  border-color: rgba(124,58,237,0.6);
+}
+@media(max-width:768px){
+  .faq-wrap { padding: 72px 24px 80px !important; }
+  .faq-question { font-size: 15px !important; }
+}
+`;
+
+/* ════════════════════════════════════════════
+   Component
+   ════════════════════════════════════════════ */
 export function TechStackSection() {
-  const { t } = useT();
+  const [open, setOpen] = useState<number>(0);
+
+  const toggle = (i: number) => setOpen(prev => (prev === i ? -1 : i));
 
   return (
-    <section id="tech" className="relative overflow-hidden py-16 md:py-28">
-      <div className="section-container">
-        <motion.div
-          className="mb-12 space-y-5 text-center md:mb-20"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+    <>
+      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
+      <section id="faq" style={{ background:"#07071a" }}>
+        <div
+          className="faq-wrap"
+          style={{ maxWidth:"860px", margin:"0 auto", padding:"88px 56px 96px" }}
         >
-          <p className="text-sm uppercase tracking-[0.3em] text-accent font-medium">{t("tech.label")}</p>
-          <h2 className="text-3xl font-semibold text-white sm:text-4xl md:text-6xl">
-            {t("tech.h2.1")}{" "}
-            <span className="text-gradient-flow text-glow-pulse">{t("tech.h2.2")}</span>
-          </h2>
-          <p className="mx-auto max-w-2xl text-base text-foreground-muted sm:text-lg">
-            {t("tech.sub")}
-          </p>
-        </motion.div>
 
-        <div className="grid gap-5 sm:grid-cols-2 md:gap-6 lg:grid-cols-3">
-          {techStack.map((category, index) => (
-            <motion.div
-              key={category.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ delay: index * 0.06, duration: 0.4 }}
-              className="group"
-            >
-              <div className="relative flex h-full flex-col gap-4 overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 transition-all duration-500 hover:border-white/15 hover:bg-white/[0.05] sm:rounded-3xl md:p-8">
-                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-accent/5 blur-[60px] transition-all group-hover:bg-accent/10" />
+          {/* ── Header ── */}
+          <motion.div
+            initial={{ opacity:0, y:22 }}
+            whileInView={{ opacity:1, y:0 }}
+            viewport={{ once:true }}
+            transition={{ duration:0.5 }}
+            style={{ marginBottom:"64px" }}
+          >
+            <p style={{
+              fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"11px",
+              color:"#7C3AED", textTransform:"uppercase", letterSpacing:"4px", margin:"0 0 18px",
+            }}>
+              Lo que todos preguntan
+            </p>
+            <h2 style={{
+              fontFamily:"var(--font-sans)", fontWeight:700,
+              fontSize:"clamp(28px,3.5vw,48px)", color:"#ffffff",
+              lineHeight:1.13, margin:"0 0 18px", letterSpacing:"-0.025em",
+            }}>
+              Respondemos antes<br />
+              <span style={{ color:"#7C3AED" }}>de que preguntes.</span>
+            </h2>
+            <p style={{
+              fontFamily:"var(--font-sans)", fontWeight:300, fontSize:"16px",
+              color:"rgba(255,255,255,0.38)", fontStyle:"italic", lineHeight:1.65, margin:0,
+            }}>
+              Todo lo que querías saber antes de dar el primer paso.
+            </p>
+          </motion.div>
 
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 border border-white/5 text-accent group-hover:bg-accent group-hover:text-white transition-colors duration-300">
-                    <category.icon className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-white">{t(`tech.c${index}.title`)}</h3>
-                    <p className="text-xs text-foreground-muted">{t(`tech.c${index}.desc`)}</p>
-                  </div>
-                </div>
-
-                <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-                <div className="flex flex-wrap gap-2">
-                  {category.stack.map((tech) => (
+          {/* ── FAQ list ── */}
+          <div>
+            {FAQS.map((faq, i) => {
+              const isOpen = open === i;
+              return (
+                <motion.div
+                  key={i}
+                  className={`faq-item${isOpen ? " faq-item-open" : ""}`}
+                  initial={{ opacity:0, y:16 }}
+                  whileInView={{ opacity:1, y:0 }}
+                  viewport={{ once:true }}
+                  transition={{ duration:0.4, delay: i * 0.055 }}
+                >
+                  {/* Question row */}
+                  <button
+                    onClick={() => toggle(i)}
+                    style={{
+                      width:"100%", background:"none", border:"none", cursor:"pointer",
+                      display:"flex", alignItems:"center", justifyContent:"space-between",
+                      gap:"20px", padding:"28px 0", textAlign:"left",
+                    }}
+                  >
+                    {/* Question text */}
                     <span
-                      key={tech}
-                      className="rounded-lg border border-white/5 bg-white/5 px-3 py-1.5 text-xs font-medium text-foreground-muted transition-colors hover:border-white/20 hover:text-white cursor-default"
+                      className="faq-question"
+                      style={{
+                        fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"17px",
+                        lineHeight:1.3, letterSpacing:"-0.01em",
+                        flex:1,
+                      }}
                     >
-                      {tech}
+                      {/* Highlight on first keyword when open */}
+                      <span style={{ position:"relative", display:"inline-block" }}>
+                        <motion.span
+                          animate={{ clipPath: isOpen ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)" }}
+                          transition={{ duration: isOpen ? 0.55 : 0.2, ease: isOpen ? [0.4,0,0.2,1] : "easeIn" }}
+                          style={{
+                            position:"absolute",
+                            top:"-2px", bottom:"-2px", left:"-4px", right:"-4px",
+                            background:"#7C3AED", borderRadius:"3px", zIndex:0,
+                          }}
+                        />
+                        <motion.span
+                          animate={{ color: isOpen ? "#ffffff" : "rgba(255,255,255,0.6)" }}
+                          transition={{ duration:0.3 }}
+                          style={{ position:"relative", zIndex:1 }}
+                        >
+                          {faq.hl}
+                        </motion.span>
+                      </span>
+                      {faq.rest && (
+                        <motion.span
+                          animate={{ color: isOpen ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.6)" }}
+                          transition={{ duration:0.3 }}
+                        >
+                          {faq.rest}
+                        </motion.span>
+                      )}
                     </span>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          ))}
+
+                    {/* Icon — + rotates to × */}
+                    <div className="faq-icon">
+                      <motion.span
+                        animate={{ rotate: isOpen ? 45 : 0 }}
+                        transition={{ duration:0.28, ease:"easeOut" }}
+                        style={{
+                          display:"block", fontFamily:"var(--font-sans)",
+                          fontWeight:300, fontSize:"20px", lineHeight:1,
+                          color:"#7C3AED", userSelect:"none",
+                        }}
+                      >
+                        +
+                      </motion.span>
+                    </div>
+                  </button>
+
+                  {/* Answer — animated open/close */}
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        key="answer"
+                        initial={{ height:0, opacity:0 }}
+                        animate={{ height:"auto", opacity:1 }}
+                        exit={{ height:0, opacity:0 }}
+                        transition={{ height:{ duration:0.35, ease:[0.4,0,0.2,1] }, opacity:{ duration:0.3 } }}
+                        style={{ overflow:"hidden" }}
+                      >
+                        <p style={{
+                          fontFamily:"var(--font-sans)", fontWeight:300,
+                          fontSize:"15px", color:"rgba(255,255,255,0.5)",
+                          lineHeight:1.8, margin:0, paddingBottom:"28px",
+                          maxWidth:"720px",
+                        }}>
+                          {faq.answer}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              );
+            })}
+          </div>
+
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

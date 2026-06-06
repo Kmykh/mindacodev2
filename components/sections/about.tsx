@@ -1,142 +1,266 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useT } from "@/lib/i18n";
-import {
-  Eye,
-  Flag,
-  HeartHandshake,
-  LineChart,
-  ShieldCheck,
-  Zap
-} from "lucide-react";
 
-const corporateGoals = [
-  {
-    type: "Misión",
-    text: "Democratizar la tecnología de alto nivel. Convertimos ideas complejas en activos digitales escalables, ayudando a emprendedores y empresas a liderar sus mercados con software robusto.",
-    icon: Flag,
-    color: "text-blue-400",
-    borderColor: "border-blue-500/20",
-    bgColor: "bg-blue-500/10"
-  },
-  {
-    type: "Visión",
-    text: "Ser el partner tecnológico de referencia en Latam. Aspiramos a redefinir el estándar de la industria, donde la calidad del código y la experiencia de usuario sean innegociables.",
-    icon: Eye,
-    color: "text-purple-400",
-    borderColor: "border-purple-500/20",
-    bgColor: "bg-purple-500/10"
-  }
+/* ════════════════════════════════════════════
+   Data
+   ════════════════════════════════════════════ */
+const TAGS: {
+  text: string; size: number; indent: number;
+  purple: boolean; fromX: number; fromY: number;
+}[] = [
+  { text: "#DejarHuella",  size: 44, indent:  0, purple: false, fromX: -55, fromY: -75 },
+  { text: "#MarcaDigital", size: 32, indent: 36, purple: true,  fromX:  48, fromY: -48 },
+  { text: "#SinExcusas",   size: 40, indent:  0, purple: false, fromX: -28, fromY: -95 },
+  { text: "#EntregaReal",  size: 28, indent: 22, purple: false, fromX:  58, fromY: -38 },
+  { text: "#CodeQueVende", size: 37, indent:  0, purple: true,  fromX: -38, fromY: -58 },
+  { text: "#HechoEnLima",  size: 24, indent: 44, purple: false, fromX:  32, fromY: -28 },
 ];
 
-const values = [
-  {
-    title: "Excelencia Técnica",
-    description: "No entregamos 'código que funciona', entregamos arquitecturas que escalan. Clean Code y Testing son norma.",
-    icon: ShieldCheck
-  },
-  {
-    title: "Transparencia Radical",
-    description: "Sin letras chicas. Acceso total al tablero de tareas, reportes y blockers. Somos una extensión de tu equipo.",
-    icon: HeartHandshake
-  },
-  {
-    title: "Innovación Pragmática",
-    description: "No usamos IA o Blockchain por moda. Implementamos tecnología solo cuando aporta valor real y medible.",
-    icon: Zap
-  },
-  {
-    title: "Orientación a Resultados",
-    description: "El software es una inversión. Nos enfocamos en métricas clave (KPIs) para asegurar que traiga retorno.",
-    icon: LineChart
-  }
+const VALUES: { num: string; pre: string; hl: string; post: string; desc: string }[] = [
+  { num:"01", pre:"",                hl:"Entregamos",           post:" lo que prometemos.", desc:"Sin excusas ni retrasos. Si lo dijimos, lo cumplimos. Así de simple." },
+  { num:"02", pre:"Ves ",            hl:"todo en tiempo real.", post:"",                    desc:"Avances, costos y tiempos siempre claros. Sin sorpresas al final." },
+  { num:"03", pre:"Tecnología que ", hl:"sirve de verdad.",     post:"",                    desc:"Usamos lo que funciona para tu caso, no lo que está de moda en el mundo tech." },
+  { num:"04", pre:"Creamos para ",   hl:"dejar huella.",        post:"",                    desc:"No trabajamos para cumplir. Cada proyecto que sale de Minda Code tiene que marcar la diferencia en tu negocio." },
 ];
 
+/* ════════════════════════════════════════════
+   CSS
+   ════════════════════════════════════════════ */
+const STYLES = `
+/* ── Values 2x2 grid ── */
+.about-vals-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+}
+.about-val-cell {
+  background: #07071a;
+  padding: 52px 48px;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+  transition: background 0.45s ease;
+}
+.about-val-cell:hover { background: rgba(124,58,237,0.04); }
+
+.about-val-num {
+  display: block;
+  color: rgba(124,58,237,0.45);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 3px;
+  margin-bottom: 18px;
+  position: relative;
+  z-index: 1;
+  transition: color 0.4s ease;
+}
+.about-val-cell:hover .about-val-num { color: #7C3AED; }
+
+.about-val-title {
+  color: rgba(255,255,255,0.68);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin: 0 0 14px 0;
+  position: relative;
+  z-index: 1;
+  transition: color 0.4s ease;
+}
+.about-val-cell:hover .about-val-title { color: #ffffff; }
+
+.about-val-desc {
+  color: rgba(255,255,255,0.3);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  line-height: 1.78;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+  transition: color 0.4s 0.1s ease;
+}
+.about-val-cell:hover .about-val-desc { color: rgba(255,255,255,0.52); }
+
+/* ── Highlight ── */
+.hl {
+  position: relative;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline;
+  white-space: nowrap;
+  color: inherit;
+}
+.hl::before {
+  content: '';
+  background: #7C3AED;
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  z-index: -1;
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 0.55s cubic-bezier(0.22,1,0.36,1);
+}
+.about-val-cell:hover .hl::before { clip-path: inset(0 0% 0 0); }
+.about-val-cell:hover .hl { color: #ffffff; }
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .about-split  { flex-direction: column !important; }
+  .about-left   { width: 100% !important; padding: 64px 24px 48px !important; }
+  .about-right  { width: 100% !important; padding: 48px 28px !important; }
+  .about-lower  { padding: 64px 24px 80px !important; }
+  .about-vals-grid { grid-template-columns: 1fr !important; }
+  .about-val-title { font-size: 22px !important; }
+}
+@media(max-width:640px){
+  .about-val-cell  { padding: 36px 22px !important; }
+  .about-val-title { font-size: 19px !important; }
+}
+`;
+
+/* ════════════════════════════════════════════
+   Component
+   ════════════════════════════════════════════ */
 export function AboutSection() {
-  const { t } = useT();
-
   return (
-    <section id="about" className="relative overflow-hidden py-16 md:py-28">
-      <div className="absolute left-0 top-1/2 -translate-y-1/2 h-[400px] w-[400px] bg-accent/4 blur-[100px] rounded-full pointer-events-none" style={{ transform: "translate(0, -50%) translateZ(0)" }} />
+    <>
+      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
+      <section id="about" style={{ background: "#07071a", overflow: "hidden" }}>
 
-      <div className="relative z-10 section-container">
-        {/* Header */}
+        {/* ══ ZONA SUPERIOR — SPLIT ══ */}
+        <div className="about-split" style={{ display: "flex" }}>
+
+          {/* ── Left 55% ── */}
+          <motion.div
+            className="about-left"
+            initial={{ opacity: 0, x: -24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            style={{ width: "55%", padding: "80px 56px 64px" }}
+          >
+            <p style={{ fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: "10px", color: "#7C3AED", textTransform: "uppercase", letterSpacing: "4px", margin: "0 0 28px" }}>
+              Sobre Nosotros
+            </p>
+
+            <h2 style={{ fontFamily: "var(--font-sans)", fontWeight: 900, fontSize: "clamp(26px,2.8vw,42px)", lineHeight: 1.15, margin: "0 0 40px", letterSpacing: "-0.025em" }}>
+              <span style={{ display: "block", color: "#ffffff" }}>Un equipo en Lima</span>
+              <span style={{ display: "block", color: "#ffffff" }}>que construye lo</span>
+              <span style={{ display: "block", color: "#7C3AED" }}>que prometemos.</span>
+            </h2>
+
+            {/* Historia — impactante */}
+            <div style={{ borderLeft: "3px solid #7C3AED", paddingLeft: "24px", maxWidth: "460px" }}>
+              <p style={{ fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: "20px", color: "rgba(255,255,255,0.85)", lineHeight: 1.45, margin: "0 0 14px", letterSpacing: "-0.01em" }}>
+                Nacimos en Lima con una obsesión.
+              </p>
+              <p style={{ fontFamily: "var(--font-sans)", fontWeight: 300, fontSize: "15px", color: "rgba(255,255,255,0.44)", lineHeight: 1.85, margin: 0 }}>
+                Que cualquier negocio peruano, sin importar su tamaño, tenga tecnología de calidad real.{" "}
+                <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.72)" }}>
+                  No creamos para cumplir. Creamos para dejar huella.
+                </span>
+              </p>
+            </div>
+          </motion.div>
+
+          {/* ── Right 45% — Hashtags slam in ── */}
+          <div
+            className="about-right"
+            style={{ width: "45%", display: "flex", alignItems: "center", padding: "56px 44px", position: "relative", overflow: "hidden" }}
+          >
+            {/* Atmospheric glow */}
+            <div style={{ position: "absolute", top: "25%", left: "15%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, rgba(124,58,237,0.12), transparent 68%)", pointerEvents: "none" }} />
+
+            <div style={{ position: "relative", zIndex: 1, width: "100%" }}>
+              {TAGS.map((tag, i) => (
+                <motion.p
+                  key={tag.text}
+                  initial={{ opacity: 0, x: tag.fromX, y: tag.fromY, scale: 0.25 }}
+                  whileInView={{
+                    opacity: [0, 1,    1,    1],
+                    x:       [tag.fromX, 0, 0, 0],
+                    y:       [tag.fromY, 0, 0, 0],
+                    scale:   [0.25,  1.28, 0.93, 1],
+                  }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, times: [0, 0.5, 0.74, 1], delay: i * 0.09 }}
+                  style={{
+                    fontFamily: "var(--font-sans)",
+                    fontWeight: 900,
+                    fontSize: `${tag.size}px`,
+                    lineHeight: 1.18,
+                    letterSpacing: "-0.03em",
+                    color: tag.purple ? "#7C3AED" : "rgba(255,255,255,0.88)",
+                    margin: `0 0 4px ${tag.indent}px`,
+                    userSelect: "none",
+                  }}
+                >
+                  {tag.text}
+                </motion.p>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
+        {/* ══ SEPARATOR ══ */}
+        <div style={{ height: "1px", background: "rgba(255,255,255,0.05)", margin: "0 56px" }} />
+
+        {/* ══ ZONA INFERIOR — VALORES ══ */}
         <motion.div
-          className="mx-auto mb-12 max-w-3xl space-y-5 text-center md:mb-20"
+          className="about-lower"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
+          style={{ padding: "80px 56px 100px" }}
         >
-          <p className="text-sm uppercase tracking-[0.3em] text-accent font-medium">{t("about.label")}</p>
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl md:text-6xl">
-            {t("about.h2.1")}{" "}
-            <br className="hidden sm:block" />
-            <span className="text-gradient-flow text-glow-pulse">{t("about.h2.2")}</span>
-          </h2>
-          <p className="text-base text-foreground-muted sm:text-lg">
-            {t("about.sub")}
+          <p style={{ fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: "10px", color: "rgba(124,58,237,0.5)", textTransform: "uppercase", letterSpacing: "4px", margin: "0 0 48px" }}>
+            Esto nos define
           </p>
+
+          {/* 2 × 2 grid */}
+          <div className="about-vals-grid">
+            {VALUES.map((v, i) => (
+              <motion.div
+                key={i}
+                className="about-val-cell"
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.45, delay: i * 0.1 }}
+              >
+                {/* Ghost number */}
+                <span aria-hidden="true" style={{
+                  position: "absolute", right: "-6px", bottom: "-14px",
+                  fontFamily: "var(--font-sans)", fontWeight: 900, fontSize: "130px", lineHeight: 1,
+                  color: "rgba(124,58,237,0.05)", pointerEvents: "none", zIndex: 0,
+                  userSelect: "none",
+                }}>
+                  {v.num}
+                </span>
+
+                <span className="about-val-num">{v.num}</span>
+
+                <h3 className="about-val-title">
+                  {v.pre  && <span>{v.pre}</span>}
+                  <span className="hl">{v.hl}</span>
+                  {v.post && <span>{v.post}</span>}
+                </h3>
+
+                <p className="about-val-desc">{v.desc}</p>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
 
-        {/* Mission & Vision */}
-        <div className="mb-12 grid gap-5 md:mb-20 md:grid-cols-2 md:gap-6">
-          {corporateGoals.map((item, index) => (
-            <motion.div
-              key={item.type}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.15, duration: 0.5 }}
-              className={`rounded-2xl border ${item.borderColor} ${item.bgColor} p-6 backdrop-blur-sm sm:rounded-3xl sm:p-8`}
-            >
-              <div className="flex items-center gap-4 mb-4">
-                <div className={`p-3 rounded-2xl ${item.bgColor} ${item.color}`}>
-                  <item.icon className="h-6 w-6" />
-                </div>
-                <h3 className={`text-xl font-bold ${item.color} sm:text-2xl`}>{t(`about.${["mission", "vision"][index]}.type`)}</h3>
-              </div>
-              <p className="text-sm leading-relaxed text-foreground-muted sm:text-base md:text-lg">
-                {t(`about.${["mission", "vision"][index]}.text`)}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Divider */}
-        <div className="flex items-center gap-4 mb-12 opacity-40">
-          <div className="h-px bg-white/10 flex-1" />
-          <span className="text-xs uppercase tracking-[0.3em] text-foreground-muted">{t("about.dna")}</span>
-          <div className="h-px bg-white/10 flex-1" />
-        </div>
-
-        {/* Values */}
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {values.map((value, index) => (
-            <motion.div
-              key={value.title}
-              initial={{ opacity: 0, y: 25 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.08, duration: 0.4 }}
-              className="group"
-            >
-              <div className="h-full rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 transition-all duration-300 hover:border-accent/20 hover:bg-white/[0.05] hover:-translate-y-1">
-                <div className="mb-4 inline-flex rounded-xl bg-white/5 p-3 text-foreground-muted group-hover:text-accent group-hover:bg-accent/10 transition-colors">
-                  <value.icon className="h-6 w-6" />
-                </div>
-                <h4 className="mb-2 text-lg font-semibold text-foreground">
-                  {t(`about.v${index}.title`)}
-                </h4>
-                <p className="text-sm text-foreground-muted leading-relaxed">
-                  {t(`about.v${index}.desc`)}
-                </p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

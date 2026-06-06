@@ -110,13 +110,14 @@ const STYLES = `
 
 
 /* ── Row min-height ── */
-.svc-row{min-height:320px}
+.svc-row{min-height:360px}
 
 /* ── Responsive ── */
 @media(max-width:1023px){
   .svc-row{flex-direction:column !important;padding:44px 24px !important;min-height:auto !important}
-  .svc-anim{width:100% !important;height:180px !important}
-  .svc-num{display:none !important}
+  .svc-frame-wrap{padding-top:14px !important;padding-left:14px !important;width:100% !important}
+  .svc-frame{width:100% !important;height:220px !important}
+  .svc-chip{display:none !important}
   .svc-sep{margin:0 24px !important}
 }
 `;
@@ -204,24 +205,33 @@ function CalendarAnim() {
 
 function BrowserAnim() {
   return (
-    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%" }}>
-      <div style={{ border:"1px solid rgba(255,255,255,0.1)", borderRadius:"12px", overflow:"hidden", width:"180px" }}>
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", padding:"8px 4px" }}>
+      <div style={{ border:"1px solid rgba(255,255,255,0.1)", borderRadius:"12px", overflow:"hidden", width:"100%" }}>
+        {/* Load bar */}
         <div style={{ height:"2px", background:"rgba(255,255,255,0.05)", overflow:"hidden" }}>
           <div className="svc-tlb" style={{ height:"100%", background:"#7C3AED" }} />
         </div>
-        <div style={{ background:"rgba(255,255,255,0.04)", padding:"6px 10px", display:"flex", gap:"6px", alignItems:"center" }}>
+        {/* Toolbar */}
+        <div style={{ background:"rgba(255,255,255,0.04)", padding:"7px 10px", display:"flex", gap:"6px", alignItems:"center" }}>
           {[["#e05555",0.85],["#e0a030",0.72],["#38b260",0.72]].map(([c,o],i) => (
             <div key={i} style={{ width:"9px", height:"9px", borderRadius:"50%", background:c as string, opacity:o as number }} />
           ))}
-          <div style={{ flex:1, height:"5px", borderRadius:"3px", background:"rgba(255,255,255,0.05)", marginLeft:"6px" }} />
+          <div style={{ flex:1, height:"5px", borderRadius:"3px", background:"rgba(255,255,255,0.07)", marginLeft:"6px" }} />
         </div>
-        <div style={{ height:"30px", background:"rgba(124,58,237,0.08)", borderBottom:"1px solid rgba(255,255,255,0.04)" }} />
-        <div style={{ padding:"10px 12px", display:"flex", flexDirection:"column", gap:"8px" }}>
-          {[1,2,3].map(n => (
-            <div key={n} style={{ height:"7px", borderRadius:"3px", background:"rgba(255,255,255,0.06)", overflow:"hidden" }}>
-              <div className={`svc-br${n}`} style={{ height:"100%", borderRadius:"3px", background:"#7C3AED" }} />
+        {/* Hero banner */}
+        <div style={{ height:"44px", background:"rgba(124,58,237,0.1)", borderBottom:"1px solid rgba(255,255,255,0.04)", display:"flex", alignItems:"center", padding:"0 12px", gap:"10px" }}>
+          <div style={{ height:"8px", width:"42%", borderRadius:"3px", background:"rgba(124,58,237,0.4)" }} />
+          <div style={{ height:"6px", width:"22%", borderRadius:"3px", background:"rgba(255,255,255,0.1)" }} />
+        </div>
+        {/* Content lines */}
+        <div style={{ padding:"12px 14px", display:"flex", flexDirection:"column", gap:"9px" }}>
+          {[1,2,3,4].map(n => (
+            <div key={n} style={{ height:"6px", borderRadius:"3px", background:"rgba(255,255,255,0.06)", overflow:"hidden" }}>
+              <div className={`svc-br${Math.min(n,3)}`} style={{ height:"100%", borderRadius:"3px", background:"#7C3AED", opacity: n===4 ? 0.45 : 1 }} />
             </div>
           ))}
+          {/* CTA button mock */}
+          <div style={{ marginTop:"4px", height:"22px", width:"50%", borderRadius:"6px", background:"rgba(124,58,237,0.18)", border:"1px solid rgba(124,58,237,0.3)" }} />
         </div>
       </div>
     </div>
@@ -230,18 +240,38 @@ function BrowserAnim() {
 
 function CartAnim() {
   return (
-    <div style={{ display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"center", gap:"14px", height:"100%" }}>
-      <div style={{ position:"relative" }}>
-        <svg width="68" height="58" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-        </svg>
-        <div className="svc-badge" style={{ position:"absolute", top:"-12px", right:"-16px", width:"28px", height:"28px", borderRadius:"50%", background:"#7C3AED", display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <span style={{ fontSize:"13px", fontWeight:800, color:"white", fontFamily:"var(--font-sans)" }}>5</span>
+    <div style={{ display:"flex", flexDirection:"column", justifyContent:"center", gap:"10px", height:"100%", padding:"4px 6px" }}>
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"2px" }}>
+        <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.35)", fontFamily:"var(--font-sans)", fontWeight:600, letterSpacing:"3px", textTransform:"uppercase" }}>
+          CARRITO
+        </span>
+        <div style={{ position:"relative" }}>
+          <svg width="22" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+          <div className="svc-badge" style={{ position:"absolute", top:"-8px", right:"-10px", width:"16px", height:"16px", borderRadius:"50%", background:"#7C3AED", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <span style={{ fontSize:"9px", fontWeight:800, color:"white", fontFamily:"var(--font-sans)" }}>5</span>
+          </div>
         </div>
       </div>
-      <div className="svc-order" style={{ fontSize:"12px", color:"#9b7bff", fontFamily:"var(--font-sans)", fontWeight:600, letterSpacing:"0.5px", border:"1px solid rgba(124,58,237,0.3)", borderRadius:"8px", padding:"7px 16px" }}>
-        + 1 PEDIDO NUEVO
+      {/* Product rows */}
+      {[["App Web Pro","S/ 2,400"],["Mantenimiento","S/ 350"],["Hosting AWS","S/ 120"]].map(([name,price],i) => (
+        <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"8px 10px", borderRadius:"8px", background:"rgba(124,58,237,0.06)", border:"1px solid rgba(124,58,237,0.1)" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
+            <div style={{ width:"7px", height:"7px", borderRadius:"2px", background:"#7C3AED", flexShrink:0 }} />
+            <span style={{ fontSize:"11px", color:"rgba(255,255,255,0.55)", fontFamily:"var(--font-sans)" }}>{name}</span>
+          </div>
+          <span style={{ fontSize:"11px", color:"#a78bfa", fontFamily:"var(--font-sans)", fontWeight:600 }}>{price}</span>
+        </div>
+      ))}
+      {/* Divider */}
+      <div style={{ height:"1px", background:"rgba(124,58,237,0.15)" }} />
+      {/* New order ping */}
+      <div className="svc-order" style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"7px", padding:"8px 12px", borderRadius:"8px", background:"rgba(124,58,237,0.12)", border:"1px solid rgba(124,58,237,0.28)" }}>
+        <div style={{ width:"7px", height:"7px", borderRadius:"50%", background:"#a78bfa" }} />
+        <span style={{ fontSize:"11px", color:"#9b7bff", fontFamily:"var(--font-sans)", fontWeight:600, letterSpacing:"0.5px" }}>+ 1 PEDIDO NUEVO</span>
       </div>
     </div>
   );
@@ -249,18 +279,31 @@ function CartAnim() {
 
 function PhoneAnim() {
   return (
-    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%" }}>
-      <div style={{ width:"80px", height:"130px", border:"1.5px solid rgba(255,255,255,0.12)", borderRadius:"18px", position:"relative", overflow:"hidden", background:"rgba(0,0,0,0.2)" }}>
-        <div style={{ position:"absolute", top:"9px", left:"50%", transform:"translateX(-50%)", width:"22px", height:"4px", background:"rgba(255,255,255,0.15)", borderRadius:"3px" }} />
-        <div className="svc-scr" style={{ position:"absolute", top:"22px", left:"6px", right:"6px", bottom:"26px", borderRadius:"6px", background:"rgba(124,58,237,0.08)", display:"flex", flexDirection:"column", gap:"5px", padding:"8px" }}>
-          <div style={{ height:"5px", borderRadius:"2px", background:"rgba(124,58,237,0.35)", width:"70%" }} />
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", gap:"18px" }}>
+      {/* Phone */}
+      <div style={{ width:"96px", height:"172px", border:"1.5px solid rgba(255,255,255,0.14)", borderRadius:"22px", position:"relative", overflow:"hidden", background:"rgba(0,0,0,0.3)", flexShrink:0 }}>
+        <div style={{ position:"absolute", top:"10px", left:"50%", transform:"translateX(-50%)", width:"26px", height:"5px", background:"rgba(255,255,255,0.13)", borderRadius:"3px" }} />
+        <div className="svc-scr" style={{ position:"absolute", top:"26px", left:"7px", right:"7px", bottom:"32px", borderRadius:"8px", background:"rgba(124,58,237,0.08)", display:"flex", flexDirection:"column", gap:"6px", padding:"9px" }}>
+          <div style={{ height:"6px", borderRadius:"2px", background:"rgba(124,58,237,0.4)", width:"70%" }} />
           <div style={{ height:"4px", borderRadius:"2px", background:"rgba(255,255,255,0.1)", width:"50%" }} />
-          <div style={{ height:"4px", borderRadius:"2px", background:"rgba(255,255,255,0.1)", width:"60%" }} />
+          <div style={{ height:"4px", borderRadius:"2px", background:"rgba(255,255,255,0.1)", width:"65%" }} />
+          <div style={{ marginTop:"6px", height:"32px", borderRadius:"6px", background:"rgba(124,58,237,0.14)" }} />
+          <div style={{ height:"4px", borderRadius:"2px", background:"rgba(255,255,255,0.07)", width:"80%" }} />
+          <div style={{ height:"4px", borderRadius:"2px", background:"rgba(255,255,255,0.07)", width:"55%" }} />
         </div>
-        <div className="svc-pn" style={{ position:"absolute", left:"5px", right:"5px", bottom:"7px", height:"28px", borderRadius:"7px", background:"#7C3AED", display:"flex", alignItems:"center", gap:"6px", padding:"0 8px" }}>
-          <div style={{ width:"8px", height:"8px", borderRadius:"50%", background:"rgba(255,255,255,0.9)", flexShrink:0 }} />
+        <div className="svc-pn" style={{ position:"absolute", left:"6px", right:"6px", bottom:"8px", height:"30px", borderRadius:"8px", background:"#7C3AED", display:"flex", alignItems:"center", gap:"6px", padding:"0 9px" }}>
+          <div style={{ width:"9px", height:"9px", borderRadius:"50%", background:"rgba(255,255,255,0.9)", flexShrink:0 }} />
           <div style={{ height:"4px", flex:1, borderRadius:"2px", background:"rgba(255,255,255,0.35)" }} />
         </div>
+      </div>
+      {/* Side stats */}
+      <div style={{ display:"flex", flexDirection:"column", gap:"10px" }}>
+        {[["Push","↑ 84%"],["Opens","↑ 61%"],["CTR","↑ 29%"]].map(([label,val]) => (
+          <div key={label} style={{ display:"flex", flexDirection:"column", gap:"2px" }}>
+            <span style={{ fontSize:"9px", color:"rgba(255,255,255,0.3)", fontFamily:"var(--font-sans)", letterSpacing:"2px", textTransform:"uppercase" }}>{label}</span>
+            <span style={{ fontSize:"14px", fontWeight:700, color:"#a78bfa", fontFamily:"var(--font-sans)" }}>{val}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -269,19 +312,26 @@ function PhoneAnim() {
 function NeuralAnim() {
   return (
     <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%" }}>
-      <svg width="240" height="180" viewBox="0 0 180 110" fill="none">
-        <line className="svc-nl1" x1="24" y1="25" x2="90" y2="55" stroke="#7C3AED" strokeWidth="1.2" />
-        <line className="svc-nl2" x1="24" y1="85" x2="90" y2="55" stroke="#7C3AED" strokeWidth="1.2" />
-        <line className="svc-nl3" x1="90" y1="55" x2="156" y2="25" stroke="#7C3AED" strokeWidth="1.2" />
-        <line className="svc-nl4" x1="90" y1="55" x2="156" y2="85" stroke="#7C3AED" strokeWidth="1.2" />
-        <line className="svc-nl5" x1="24" y1="25" x2="90" y2="55" stroke="#7C3AED" strokeWidth="1.2" opacity="0.4" />
-        <line className="svc-nl6" x1="24" y1="55" x2="90" y2="55" stroke="#7C3AED" strokeWidth="1.2" />
-        <circle className="svc-no" cx="24" cy="25" r="6" fill="rgba(124,58,237,0.25)" stroke="rgba(124,58,237,0.55)" strokeWidth="1.2" />
-        <circle className="svc-no" cx="24" cy="55" r="6" fill="rgba(124,58,237,0.25)" stroke="rgba(124,58,237,0.55)" strokeWidth="1.2" />
-        <circle className="svc-no" cx="24" cy="85" r="6" fill="rgba(124,58,237,0.25)" stroke="rgba(124,58,237,0.55)" strokeWidth="1.2" />
-        <circle className="svc-nc" cx="90" cy="55" r="9" fill="#7C3AED" />
-        <circle className="svc-no" cx="156" cy="25" r="6" fill="rgba(124,58,237,0.25)" stroke="rgba(124,58,237,0.55)" strokeWidth="1.2" />
-        <circle className="svc-no" cx="156" cy="85" r="6" fill="rgba(124,58,237,0.25)" stroke="rgba(124,58,237,0.55)" strokeWidth="1.2" />
+      <svg width="256" height="200" viewBox="0 0 200 140" fill="none">
+        {/* L→C */}
+        <line className="svc-nl1" x1="18" y1="22"  x2="100" y2="70" stroke="#7C3AED" strokeWidth="1.3" />
+        <line className="svc-nl2" x1="18" y1="70"  x2="100" y2="70" stroke="#7C3AED" strokeWidth="1.3" />
+        <line className="svc-nl6" x1="18" y1="118" x2="100" y2="70" stroke="#7C3AED" strokeWidth="1.3" />
+        {/* C→R */}
+        <line className="svc-nl3" x1="100" y1="70" x2="182" y2="22"  stroke="#7C3AED" strokeWidth="1.3" />
+        <line className="svc-nl4" x1="100" y1="70" x2="182" y2="70"  stroke="#7C3AED" strokeWidth="1.3" />
+        <line className="svc-nl5" x1="100" y1="70" x2="182" y2="118" stroke="#7C3AED" strokeWidth="1.3" />
+        {/* Left nodes */}
+        <circle className="svc-no" cx="18" cy="22"  r="7" fill="rgba(124,58,237,0.22)" stroke="rgba(124,58,237,0.6)" strokeWidth="1.4" />
+        <circle className="svc-no" cx="18" cy="70"  r="7" fill="rgba(124,58,237,0.22)" stroke="rgba(124,58,237,0.6)" strokeWidth="1.4" />
+        <circle className="svc-no" cx="18" cy="118" r="7" fill="rgba(124,58,237,0.22)" stroke="rgba(124,58,237,0.6)" strokeWidth="1.4" />
+        {/* Center node glow ring */}
+        <circle cx="100" cy="70" r="18" fill="rgba(124,58,237,0.1)" />
+        <circle className="svc-nc" cx="100" cy="70" r="12" fill="#7C3AED" />
+        {/* Right nodes */}
+        <circle className="svc-no" cx="182" cy="22"  r="7" fill="rgba(124,58,237,0.22)" stroke="rgba(124,58,237,0.6)" strokeWidth="1.4" />
+        <circle className="svc-no" cx="182" cy="70"  r="7" fill="rgba(124,58,237,0.22)" stroke="rgba(124,58,237,0.6)" strokeWidth="1.4" />
+        <circle className="svc-no" cx="182" cy="118" r="7" fill="rgba(124,58,237,0.22)" stroke="rgba(124,58,237,0.6)" strokeWidth="1.4" />
       </svg>
     </div>
   );
@@ -452,39 +502,66 @@ function ServiceRow({ svc, index }: { svc:ServiceDef; index:number }) {
   const flip = index % 2 !== 0;
   const isGold = svc.anim === "invoice";
   const AnimEl = ANIM[svc.anim];
-  const lineColor = isGold ? "rgba(212,160,23,0.08)" : "rgba(124,58,237,0.08)";
+  const lineColor  = isGold ? "rgba(212,160,23,0.1)"  : "rgba(124,58,237,0.1)";
+  const frameColor = isGold ? "rgba(212,160,23,0.14)" : "rgba(124,58,237,0.14)";
+  const frameBg    = isGold ? "rgba(212,160,23,0.025)": "rgba(124,58,237,0.03)";
+  const accentCol  = isGold ? "#D4A017" : "#a78bfa";
+  const chipBorder = isGold ? "rgba(212,160,23,0.32)" : "rgba(124,58,237,0.32)";
 
   return (
     <div
       className="svc-row"
-      style={{ position:"relative", display:"flex", alignItems:"center", flexDirection: flip?"row-reverse":"row", gap:"48px", padding:"56px 72px" }}
+      style={{ position:"relative", display:"flex", alignItems:"center",
+        flexDirection: flip?"row-reverse":"row", gap:"56px", padding:"56px 80px" }}
     >
-      {/* Number badge — outer edge of text side, opposite to animation */}
-      <div
-        className="svc-num"
-        style={{ position:"absolute", top:"50%", transform:"translateY(-50%)", [flip?"left":"right"]:"16px", width:"54px", height:"54px", border:`1px solid ${isGold?"rgba(212,160,23,0.18)":"rgba(124,58,237,0.18)"}`, borderRadius:"10px", background:"rgba(7,7,26,0.6)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:2 }}
-      >
-        <motion.span
-          initial={{ color:"transparent" }}
-          whileInView={{ color: isGold?"#D4A017":"#a78bfa" }}
-          transition={{ duration:0.8, ease:"easeOut" }}
-          viewport={{ once:true }}
-          style={{ fontFamily:"var(--font-sans)", fontWeight:800, fontSize:"18px", letterSpacing:"-0.02em", userSelect:"none", WebkitTextStroke: isGold?"1px rgba(212,160,23,0.65)":"1px rgba(167,139,250,0.65)" }}
+      {/* ── Animation panel + number chip ── */}
+      <div className="svc-frame-wrap" style={{ position:"relative", flexShrink:0, paddingTop:"16px", paddingLeft:"16px" }}>
+
+        {/* Number chip — overlaps top-left corner of the frame */}
+        <div
+          className="svc-chip"
+          style={{ position:"absolute", top:0, left:0, zIndex:3,
+            width:"44px", height:"44px",
+            background:"#07071a",
+            border:`1px solid ${chipBorder}`,
+            borderRadius:"10px",
+            display:"flex", alignItems:"center", justifyContent:"center" }}
         >
-          {String(index+1).padStart(2,"0")}
-        </motion.span>
-      </div>
+          <motion.span
+            initial={{ color:"transparent" }}
+            whileInView={{ color: accentCol }}
+            transition={{ duration:0.8, ease:"easeOut" }}
+            viewport={{ once:true }}
+            style={{ fontFamily:"var(--font-sans)", fontWeight:800, fontSize:"17px",
+              letterSpacing:"-0.02em", userSelect:"none",
+              WebkitTextStroke: isGold?"1px rgba(212,160,23,0.65)":"1px rgba(167,139,250,0.65)" }}
+          >
+            {String(index+1).padStart(2,"0")}
+          </motion.span>
+        </div>
 
-      {/* Animation zone */}
-      <div className="svc-anim" style={{ width:"260px", height:"220px", flexShrink:0, zIndex:1, position:"relative" }}>
+        {/* Frame */}
+        <div
+          className="svc-frame"
+          style={{ width:"290px", height:"290px",
+            background: frameBg,
+            border:`1px solid ${frameColor}`,
+            borderRadius:"18px",
+            overflow:"hidden",
+            position:"relative" }}
+        >
+          {/* Dashed decorative lines */}
+          <div style={{ position:"absolute", top:"30%", left:0, right:0, height:"1px",
+            background:`repeating-linear-gradient(to right,${lineColor} 0px,${lineColor} 4px,transparent 4px,transparent 10px)`,
+            zIndex:0, pointerEvents:"none" }} />
+          <div style={{ position:"absolute", top:"70%", left:0, right:0, height:"1px",
+            background:`repeating-linear-gradient(to right,${lineColor} 0px,${lineColor} 4px,transparent 4px,transparent 10px)`,
+            zIndex:0, pointerEvents:"none" }} />
 
-        {/* Decorative dashed lines */}
-        <div style={{ position:"absolute", top:"30%", left:0, right:0, height:"1px", background:`repeating-linear-gradient(to right,${lineColor} 0px,${lineColor} 4px,transparent 4px,transparent 10px)`, zIndex:0, pointerEvents:"none" }} />
-        <div style={{ position:"absolute", top:"70%", left:0, right:0, height:"1px", background:`repeating-linear-gradient(to right,${lineColor} 0px,${lineColor} 4px,transparent 4px,transparent 10px)`, zIndex:0, pointerEvents:"none" }} />
-
-        {/* Animation content above decorations */}
-        <div style={{ position:"relative", zIndex:1, height:"100%" }}>
-          <AnimEl />
+          {/* Content */}
+          <div style={{ position:"relative", zIndex:1, height:"100%", padding:"14px" }}>
+            <AnimEl />
+          </div>
         </div>
       </div>
 

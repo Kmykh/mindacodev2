@@ -1,171 +1,252 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
-import { useT } from "@/lib/i18n";
-import { Code2, Figma, Headset, Rocket, Search } from "lucide-react";
-import { useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
 
-type StepItem = {
-  number: string;
-  title: string;
-  description: string;
-  icon: typeof Search;
-  accent: string;
-  borderColor: string;
-  bgColor: string;
-  glowColor: string;
-};
+const STEPS = [
+  { num:"01", prefix:"Te ",        hl:"escuchamos",      suffix:" primero", desc:"Entendemos tu negocio, tus clientes y tus metas reales. Sin tecnicismos ni contratos trampa." },
+  { num:"02", prefix:"Ves cómo ",  hl:"va a quedar",     suffix:"",         desc:"Diseñamos antes de construir. Tú apruebas cada detalle y recién arrancamos." },
+  { num:"03", prefix:"Tú ",        hl:"ves el avance",   suffix:"",         desc:"Cada 2 semanas, resultados reales sobre la mesa. No promesas — código funcionando." },
+  { num:"04", prefix:"Lo lanzamos ",hl:"juntos",         suffix:"",         desc:"Sale perfecto desde el primer día. Sin errores en el estreno, sin malas sorpresas." },
+  { num:"05", prefix:"",           hl:"No desaparecemos",suffix:" después", desc:"Soporte real cuando lo necesites. No eres un ticket, eres un cliente que sigue creciendo." },
+];
 
-function ProcessStep({ step, index }: { step: StepItem; index: number }) {
-  const { t } = useT();
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+const STYLES = `
+.proc-col {
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(255,255,255,0.05);
+}
+.proc-col:last-child { border-right: none; }
 
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="relative grid grid-cols-[48px_1fr] items-start gap-4 sm:grid-cols-[64px_1fr] sm:gap-6 md:grid-cols-[80px_1fr] md:gap-8"
-    >
-      {/* Timeline node */}
-      <div className="relative z-10 flex flex-col items-center">
-        <motion.div
-          className={`flex h-12 w-12 items-center justify-center rounded-xl border-2 ${step.borderColor} ${step.bgColor} shadow-lg backdrop-blur-sm sm:h-16 sm:w-16 sm:rounded-2xl`}
-          initial={{ scale: 0, rotate: -90 }}
-          animate={isInView ? { scale: 1, rotate: 0 } : {}}
-          transition={{ type: "spring", stiffness: 200, damping: 15, delay: index * 0.1 + 0.15 }}
-        >
-          <step.icon className={`h-5 w-5 ${step.accent} sm:h-6 sm:w-6`} />
-        </motion.div>
-      </div>
-
-      {/* Content */}
-      <div className="group rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 backdrop-blur-sm transition-all duration-500 hover:border-white/15 hover:bg-white/[0.04] sm:p-6 sm:rounded-3xl md:p-8">
-        <div className="mb-3 flex items-center gap-3">
-          <span className={`rounded-full ${step.bgColor} ${step.accent} px-3 py-1 text-[11px] font-bold tracking-[0.2em]`}>
-            {t("process.step")} {step.number}
-          </span>
-          <span className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
-        </div>
-
-        <h3 className="mb-2 text-lg font-bold text-foreground sm:text-xl md:text-2xl">
-          {step.title}
-        </h3>
-        <p className="max-w-2xl text-sm leading-relaxed text-foreground-muted sm:text-base md:text-lg">
-          {step.description}
-        </p>
-      </div>
-    </motion.div>
-  );
+.proc-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 28px 0 64px;
 }
 
-export function ProcessSection() {
-  const { t } = useT();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+@media(max-width:900px){
+  .proc-row  { flex-direction: column !important; overflow: visible !important; }
+  .proc-col  { width: 100% !important; border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.05) !important; }
+  .proc-col:last-child { border-bottom: none !important; }
+  .proc-ghost { display: none !important; }
+  .proc-timeline { padding: 0 24px !important; }
+  .proc-header  { padding: 72px 24px 40px !important; }
+}
+@media(max-width:640px){
+  .proc-inner { padding: 28px 18px 36px !important; }
+}
+`;
 
-  const steps: StepItem[] = [
-    {
-      number: "01",
-      title: t("process.s0.title"),
-      description: t("process.s0.desc"),
-      icon: Search,
-      accent: "text-blue-400",
-      borderColor: "border-blue-400/20",
-      bgColor: "bg-blue-400/10",
-      glowColor: "rgba(96, 165, 250, 0.08)"
-    },
-    {
-      number: "02",
-      title: t("process.s1.title"),
-      description: t("process.s1.desc"),
-      icon: Figma,
-      accent: "text-fuchsia-400",
-      borderColor: "border-fuchsia-400/20",
-      bgColor: "bg-fuchsia-400/10",
-      glowColor: "rgba(232, 121, 249, 0.08)"
-    },
-    {
-      number: "03",
-      title: t("process.s2.title"),
-      description: t("process.s2.desc"),
-      icon: Code2,
-      accent: "text-emerald-400",
-      borderColor: "border-emerald-400/20",
-      bgColor: "bg-emerald-400/10",
-      glowColor: "rgba(52, 211, 153, 0.08)"
-    },
-    {
-      number: "04",
-      title: t("process.s3.title"),
-      description: t("process.s3.desc"),
-      icon: Rocket,
-      accent: "text-orange-400",
-      borderColor: "border-orange-400/20",
-      bgColor: "bg-orange-400/10",
-      glowColor: "rgba(251, 146, 60, 0.08)"
-    },
-    {
-      number: "05",
-      title: t("process.s4.title"),
-      description: t("process.s4.desc"),
-      icon: Headset,
-      accent: "text-pink-400",
-      borderColor: "border-pink-400/20",
-      bgColor: "bg-pink-400/10",
-      glowColor: "rgba(244, 114, 182, 0.08)"
-    }
-  ];
+export function ProcessSection() {
+  const [active, setActive]     = useState(0);
+  const [timerKey, setTimerKey] = useState(0);
+  const [scanKey, setScanKey]   = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setActive(a => (a + 1) % STEPS.length);
+      setScanKey(k => k + 1);
+    }, 2400);
+    return () => clearInterval(id);
+  }, [timerKey]);
+
+  const jumpTo = (i: number) => {
+    setActive(i);
+    setScanKey(k => k + 1);
+    setTimerKey(k => k + 1);
+  };
 
   return (
-    <section id="process" className="relative overflow-hidden py-16 md:py-28">
-      {/* Ambients */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <motion.div
-          className="absolute left-[8%] top-16 h-56 w-56 rounded-full bg-accent/8 blur-[90px]"
-          animate={{ opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </div>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
+      <section id="process" style={{ background:"#07071a", overflow:"hidden" }}>
 
-      <div className="mx-auto w-full max-w-5xl px-5 sm:px-6">
-        {/* Header */}
+        {/* ── Header ── */}
         <motion.div
-          className="mb-12 space-y-5 text-center md:mb-20"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          className="proc-header"
+          initial={{ opacity:0, y:22 }}
+          whileInView={{ opacity:1, y:0 }}
+          viewport={{ once:true }}
+          transition={{ duration:0.5 }}
+          style={{ padding:"88px 52px 44px" }}
         >
-          <p className="text-sm uppercase tracking-[0.3em] text-accent font-medium">{t("process.label")}</p>
-          <h2 className="text-3xl font-semibold leading-tight sm:text-4xl md:text-6xl">
-            {t("process.h2.1")}{" "}
-            <span className="text-gradient-flow text-glow-pulse">{t("process.h2.2")}</span>
+          <p style={{ fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"11px", color:"#7C3AED", textTransform:"uppercase", letterSpacing:"4px", margin:"0 0 18px" }}>
+            Cómo Trabajamos
+          </p>
+          <h2 style={{ fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"clamp(28px,3.5vw,48px)", color:"#ffffff", lineHeight:1.14, margin:"0 0 16px", letterSpacing:"-0.025em" }}>
+            Así trabajamos{" "}
+            <span style={{ color:"#7C3AED" }}>contigo.</span>
           </h2>
-          <p className="mx-auto max-w-2xl text-base text-foreground-muted sm:text-lg">
-            {t("process.sub")}
+          <p style={{ fontFamily:"var(--font-sans)", fontWeight:300, fontSize:"16px", color:"rgba(255,255,255,0.38)", fontStyle:"italic", maxWidth:"480px", lineHeight:1.65, margin:0 }}>
+            Sin tecnicismos. Sin sorpresas. Tú siempre sabes qué sigue.
           </p>
         </motion.div>
 
-        {/* Timeline */}
-        <div ref={containerRef} className="relative space-y-6 md:space-y-8">
-          <div className="absolute left-6 top-4 bottom-4 w-px sm:left-8 md:left-10">
-            <motion.div
-              className="h-full w-full bg-gradient-to-b from-accent/40 via-accent-soft/20 to-transparent"
-              initial={{ scaleY: 0 }}
-              animate={isInView ? { scaleY: 1 } : {}}
-              transition={{ duration: 1.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              style={{ transformOrigin: "top" }}
-            />
-          </div>
+        {/* ── Steps row ── */}
+        <div
+          className="proc-row"
+          style={{ display:"flex", overflow:"hidden", borderTop:"1px solid rgba(255,255,255,0.055)", borderBottom:"1px solid rgba(255,255,255,0.055)" }}
+        >
+          {STEPS.map((step, i) => {
+            const isAct = i === active;
+            return (
+              <motion.div
+                key={step.num}
+                className="proc-col"
+                animate={{ width: isAct ? "26%" : "18.5%" }}
+                transition={{ duration:0.48, ease:[0.4,0,0.2,1] }}
+                onClick={() => jumpTo(i)}
+              >
+                {/* ── Scanner wash — the "carga" ── */}
+                <AnimatePresence>
+                  {isAct && (
+                    <motion.div
+                      key={`scan-${scanKey}`}
+                      initial={{ y:"0%", opacity:1 }}
+                      animate={{ y:"130%", opacity:0 }}
+                      exit={{}}
+                      transition={{ duration:0.65, ease:"easeIn" }}
+                      style={{
+                        position:"absolute", left:0, right:0, top:0,
+                        height:"55%",
+                        background:"linear-gradient(to bottom, rgba(124,58,237,0.14) 0%, rgba(124,58,237,0.06) 60%, transparent 100%)",
+                        pointerEvents:"none",
+                        zIndex:4,
+                      }}
+                    />
+                  )}
+                </AnimatePresence>
 
-          {steps.map((step, index) => (
-            <ProcessStep key={step.title} step={step} index={index} />
+                {/* ── Left active border ── */}
+                <motion.div
+                  animate={{ scaleY: isAct ? 1 : 0, opacity: isAct ? 1 : 0 }}
+                  transition={{ duration:0.4, ease:"easeOut", delay: isAct ? 0.1 : 0 }}
+                  style={{
+                    position:"absolute", left:0, top:"15%", bottom:"15%",
+                    width:"2px",
+                    background:"linear-gradient(to bottom, transparent, #7C3AED 40%, #a78bfa 60%, transparent)",
+                    transformOrigin:"center",
+                    zIndex:3,
+                    borderRadius:"2px",
+                  }}
+                />
+
+                {/* ── Background glow ── */}
+                <motion.div
+                  animate={{ opacity: isAct ? 1 : 0 }}
+                  transition={{ duration:0.5 }}
+                  style={{
+                    position:"absolute", inset:0,
+                    background:"radial-gradient(ellipse 160% 80% at 50% 110%, rgba(124,58,237,0.1), transparent 60%)",
+                    pointerEvents:"none",
+                  }}
+                />
+
+                {/* ── Ghost number ── */}
+                <motion.div
+                  className="proc-ghost"
+                  animate={{ opacity: isAct ? 0.07 : 0.022, scale: isAct ? 1 : 0.84, y: isAct ? 0 : 10 }}
+                  transition={{ duration:0.5, ease:"easeOut" }}
+                  style={{
+                    position:"absolute", bottom:"-20px", right:"-6px",
+                    fontFamily:"var(--font-sans)", fontWeight:900,
+                    fontSize:"124px", lineHeight:1, color:"#7C3AED",
+                    userSelect:"none", pointerEvents:"none", transformOrigin:"bottom right",
+                  }}
+                >
+                  {step.num}
+                </motion.div>
+
+                {/* ── Content ── */}
+                <div className="proc-inner" style={{ padding:"44px 28px 44px", position:"relative", zIndex:2 }}>
+
+                  {/* Title with highlight sweep */}
+                  <h3 style={{ fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"clamp(15px,1.4vw,21px)", lineHeight:1.35, margin:"0 0 20px", letterSpacing:"-0.01em" }}>
+                    {step.prefix ? (
+                      <motion.span
+                        animate={{ color: isAct ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.14)" }}
+                        transition={{ duration:0.35 }}
+                      >
+                        {step.prefix}
+                      </motion.span>
+                    ) : null}
+
+                    {/* Keyword highlight */}
+                    <span style={{ position:"relative", display:"inline-block" }}>
+                      {/* Sweep bg */}
+                      <motion.span
+                        animate={{ clipPath: isAct ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)" }}
+                        transition={{ duration: isAct ? 0.6 : 0.22, ease: isAct ? [0.4,0,0.2,1] : "easeIn", delay: isAct ? 0.15 : 0 }}
+                        style={{ position:"absolute", top:"-2px", bottom:"-2px", left:"-3px", right:"-3px", background:"#7C3AED", borderRadius:"3px", zIndex:0 }}
+                      />
+                      <motion.span
+                        animate={{ color: isAct ? "#ffffff" : "rgba(255,255,255,0.14)" }}
+                        transition={{ duration:0.35 }}
+                        style={{ position:"relative", zIndex:1 }}
+                      >
+                        {step.hl}
+                      </motion.span>
+                    </span>
+
+                    {step.suffix ? (
+                      <motion.span
+                        animate={{ color: isAct ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.14)" }}
+                        transition={{ duration:0.35 }}
+                      >
+                        {step.suffix}
+                      </motion.span>
+                    ) : null}
+                  </h3>
+
+                  {/* Description — opacity only, no transform */}
+                  <div style={{ minHeight:"68px" }}>
+                    <AnimatePresence mode="wait">
+                      {isAct && (
+                        <motion.p
+                          key={step.num}
+                          initial={{ opacity:0 }}
+                          animate={{ opacity:1 }}
+                          exit={{ opacity:0 }}
+                          transition={{ duration:0.4, delay:0.22 }}
+                          style={{ fontFamily:"var(--font-sans)", fontWeight:300, fontSize:"13px", fontStyle:"italic", color:"rgba(255,255,255,0.42)", lineHeight:1.78, margin:0 }}
+                        >
+                          {step.desc}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Bottom accent line */}
+                  <motion.div
+                    animate={{ scaleX: isAct ? 1 : 0, opacity: isAct ? 1 : 0 }}
+                    transition={{ duration:0.5, ease:"easeOut", delay: isAct ? 0.25 : 0 }}
+                    style={{ position:"absolute", bottom:0, left:"28px", right:"28px", height:"2px", background:"linear-gradient(to right, #7C3AED, #a78bfa, rgba(167,139,250,0))", transformOrigin:"left", borderRadius:"2px" }}
+                  />
+
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* ── Navigation dots ── */}
+        <div className="proc-dots">
+          {STEPS.map((_, i) => (
+            <motion.button
+              key={i}
+              onClick={() => jumpTo(i)}
+              animate={{ width: i === active ? 24 : 8, backgroundColor: i === active ? "#7C3AED" : "rgba(255,255,255,0.18)" }}
+              transition={{ duration:0.3 }}
+              style={{ height:"8px", borderRadius:"4px", border:"none", cursor:"pointer", padding:0, flexShrink:0 }}
+            />
           ))}
         </div>
-      </div>
-    </section>
+
+      </section>
+    </>
   );
 }
