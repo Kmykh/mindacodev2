@@ -69,6 +69,12 @@ const STYLES = `
   .bf-split     { flex-direction:column !important; }
   .bf-video-col { width:100% !important; }
   .bf-text-col  { width:100% !important; padding:40px 24px !important; }
+  .bf-line-0 { font-size:52px !important; }
+  .bf-line-1 { font-size:22px !important; }
+  .bf-line-2 { font-size:56px !important; letter-spacing:-3px !important; }
+  .bf-line-3 { font-size:19px !important; }
+  .bf-line-4 { font-size:48px !important; letter-spacing:-2px !important; }
+  .bf-line-5 { font-size:18px !important; }
 }
 `;
 
@@ -139,7 +145,7 @@ export function BrandFilmSection() {
           >
             <div style={{ display:"flex", flexDirection:"column", gap:"0px" }}>
               {LINE_STYLES.map((style, i) => (
-                <div key={i} className="word-line" style={style}>
+                <div key={i} className={`word-line bf-line-${i}`} style={style}>
                   <span
                     ref={el => { spanRefs.current[i] = el; }}
                     className="word-inner"

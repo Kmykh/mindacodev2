@@ -14,6 +14,21 @@ const PILLS = [
   "@mindacode",
 ];
 
+const STYLES = `
+@media(max-width:640px){
+  .promo-mascot-wrap {
+    right: -8% !important;
+    height: 52% !important;
+    opacity: 0.4 !important;
+  }
+  .promo-headline-area { max-width: 84% !important; }
+  .promo-cta-area {
+    right: 6% !important;
+    top: 50% !important;
+  }
+}
+`;
+
 const fadeUp = (delay: number) => ({
   initial: { opacity: 0, y: 28 },
   whileInView: { opacity: 1, y: 0 },
@@ -35,6 +50,7 @@ export function FathersDayBanner() {
       className="relative overflow-hidden"
       style={{ minHeight: "100vh", backgroundColor: "#080818" }}
     >
+      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
 
       {/* ═══════════════════════════════════════════
           z:0 — TIRAS VERTICALES ANIMADAS
@@ -186,6 +202,7 @@ export function FathersDayBanner() {
       
       {/* Mascota — flotando */}
       <div
+        className="promo-mascot-wrap"
         style={{
           position: "absolute",
           right: "20%",
@@ -219,6 +236,7 @@ export function FathersDayBanner() {
 
       {/* Zona superior izquierda — Tag + Headline */}
       <div
+        className="promo-headline-area"
         style={{
           position: "absolute",
           top: "clamp(72px, 10vh, 110px)",
@@ -298,6 +316,7 @@ export function FathersDayBanner() {
       {/* Zona copy + CTA + pills */}
       <motion.div
         {...fadeUp(0.55)}
+        className="promo-cta-area"
         style={{
           position: "absolute",
           top: "55%",

@@ -115,7 +115,7 @@ const STYLES = `
 @media(max-width:900px){
   .about-split  { flex-direction: column !important; }
   .about-left   { width: 100% !important; padding: 64px 24px 48px !important; }
-  .about-right  { width: 100% !important; padding: 48px 28px !important; }
+  .about-right  { width: 100% !important; padding: 48px 28px !important; overflow: visible !important; }
   .about-lower  { padding: 64px 24px 80px !important; }
   .about-vals-grid { grid-template-columns: 1fr !important; }
   .about-val-title { font-size: 22px !important; }
@@ -233,10 +233,10 @@ export function AboutSection() {
                   }}
                   style={{
                     alignSelf:"flex-start",
-                    marginLeft:`${tag.indent}px`,
+                    marginLeft:`clamp(0px, ${(tag.indent / 8).toFixed(1)}vw, ${tag.indent}px)`,
                     fontFamily:"var(--font-sans)",
                     fontWeight:900,
-                    fontSize:`${tag.size}px`,
+                    fontSize:`clamp(${Math.round(tag.size * 0.52)}px, ${(tag.size / 7).toFixed(1)}vw, ${tag.size}px)`,
                     lineHeight:1.15,
                     letterSpacing:"-0.03em",
                     userSelect:"none",

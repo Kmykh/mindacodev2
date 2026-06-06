@@ -116,9 +116,14 @@ const STYLES = `
 @media(max-width:1023px){
   .svc-row{flex-direction:column !important;padding:44px 24px !important;min-height:auto !important}
   .svc-frame-wrap{padding-top:14px !important;padding-left:14px !important;width:100% !important}
-  .svc-frame{width:100% !important;height:220px !important}
+  .svc-frame{width:100% !important;height:200px !important}
   .svc-chip{display:none !important}
   .svc-sep{margin:0 24px !important}
+}
+@media(max-width:640px){
+  .svc-row{padding:36px 20px !important;gap:32px !important}
+  .svc-frame{height:180px !important}
+  .svc-header-pad{padding:64px 20px 28px !important}
 }
 `;
 
@@ -603,7 +608,7 @@ export function ServicesSection() {
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
 
       {/* Header */}
-      <div style={{ padding:"88px 52px 36px" }}>
+      <div className="svc-header-pad" style={{ padding:"88px 52px 36px" }}>
         <motion.div initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} transition={{ duration:0.5 }}>
           <p style={{ fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"11px", color:"#7C3AED", textTransform:"uppercase", letterSpacing:"4px", margin:"0 0 16px" }}>
             Nuestros Servicios
