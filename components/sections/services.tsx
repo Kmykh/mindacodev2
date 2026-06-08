@@ -119,6 +119,19 @@ const STYLES = `
   .svc-frame{width:100% !important;height:200px !important}
   .svc-chip{display:none !important}
   .svc-sep{margin:0 24px !important}
+  /* Disable all CSS animations on mobile — prevents CPU/GPU jank from off-screen anims */
+  .svc-td1,.svc-td2,.svc-td3,
+  .svc-c1,.svc-c2,.svc-c3,.svc-c4,
+  .svc-fd1,.svc-fd2,.svc-fn1,.svc-fn2,.svc-fn3,
+  .svc-ca,.svc-cb,.svc-cc,.svc-cd,.svc-ck,
+  .svc-tlb,.svc-br1,.svc-br2,.svc-br3,
+  .svc-badge,.svc-order,
+  .svc-pn,.svc-scr,
+  .svc-nl1,.svc-nl2,.svc-nl3,.svc-nl4,.svc-nl5,.svc-nl6,.svc-nc,.svc-no,
+  .svc-sb1,.svc-sb2,.svc-sb3,.svc-ecg,
+  .svc-bar1,.svc-bar2,.svc-bar3,.svc-bar4,
+  .svc-ir1,.svc-ir2,.svc-ir3,.svc-itot,
+  .svc-arr { animation: none !important; }
 }
 @media(max-width:640px){
   .svc-row{padding:36px 20px !important;gap:32px !important}
@@ -629,10 +642,10 @@ export function ServicesSection() {
       {SERVICES.map((svc, i) => (
         <div key={svc.name}>
           <motion.div
-            initial={{ opacity:0, y:28 }}
+            initial={{ opacity:0, y:20 }}
             whileInView={{ opacity:1, y:0 }}
-            viewport={{ once:true, margin:"-50px" }}
-            transition={{ duration:0.52, ease:[0.22,1,0.36,1] }}
+            viewport={{ once:true, margin:"-20px" }}
+            transition={{ duration:0.45, ease:[0.22,1,0.36,1] }}
           >
             <ServiceRow svc={svc} index={i} />
           </motion.div>

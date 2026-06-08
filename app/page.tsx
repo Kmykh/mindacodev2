@@ -1,8 +1,6 @@
 "use client";
 
 import { motion, type Variants } from "framer-motion";
-import { useState, useEffect } from "react";
-import { ArrowRight, MessageCircle } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ScrollToTop } from "@/components/layout/scroll-to-top";
@@ -17,8 +15,6 @@ import { AboutSection } from "@/components/sections/about";
 import { BrandFilmSection } from "@/components/sections/brand-film";
 import { ContactSection } from "@/components/sections/contact";
 import { FathersDayBanner } from "@/components/sections/fathers-day-banner";
-import { useT } from "@/lib/i18n";
-import { smoothScrollTo } from "@/lib/utils";
 
 const revealVariants: Variants = {
   hidden: { opacity: 0, y: 32 },
@@ -39,44 +35,6 @@ function RevealOnScroll({ children, delay = 0 }: { children: React.ReactNode; de
   );
 }
 
-function MobileFloatingCTA() {
-  const { t } = useT();
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const contactEl = document.getElementById("contact");
-      const contactTop = contactEl?.getBoundingClientRect().top ?? Infinity;
-      setVisible(scrollY > 600 && contactTop > 200);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  return (
-    <div className={`mobile-cta-bar md:hidden ${visible ? "visible" : ""}`}>
-      <div className="flex gap-2">
-        <button
-          onClick={() => smoothScrollTo("contact")}
-          className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-accent via-accent-soft to-accent text-background font-semibold py-3.5 text-sm shadow-glow-sm active:scale-[0.97] transition-transform"
-        >
-          {t("mobileCta.btn")}
-          <ArrowRight className="h-4 w-4" />
-        </button>
-        <a
-          href="https://wa.me/51926948155"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center rounded-2xl border border-green-500/30 bg-green-500/10 px-4 text-green-400 active:scale-[0.95] transition-transform"
-          aria-label="WhatsApp"
-        >
-          <MessageCircle className="h-5 w-5" />
-        </a>
-      </div>
-    </div>
-  );
-}
 
 export default function HomePage() {
   return (
@@ -94,9 +52,7 @@ export default function HomePage() {
           <TrustSection />
         </RevealOnScroll>
 
-        <RevealOnScroll>
-          <ServicesSection />
-        </RevealOnScroll>
+        <ServicesSection />
 
         <RevealOnScroll>
           <PortfolioSection />
@@ -124,7 +80,6 @@ export default function HomePage() {
       </main>
       <Footer />
       <ScrollToTop />
-      <MobileFloatingCTA />
     </>
   );
 }

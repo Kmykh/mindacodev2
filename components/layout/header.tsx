@@ -212,7 +212,7 @@ export function Header() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="fixed inset-0 z-40 md:hidden"
-              style={{ background: "rgba(7,7,26,0.75)", backdropFilter: "blur(8px)" }}
+              style={{ background: "rgba(7,7,26,0.8)", backdropFilter: "blur(12px)" }}
               onClick={() => setMenuOpen(false)}
             />
 
@@ -221,107 +221,139 @@ export function Header() {
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 320, damping: 32 }}
+              transition={{ type: "spring", stiffness: 280, damping: 30 }}
               className="fixed inset-x-0 bottom-0 z-50 md:hidden"
               onClick={e => e.stopPropagation()}
               role="dialog"
               aria-modal="true"
             >
               <div style={{
-                borderRadius: "24px 24px 0 0",
-                border: "1px solid rgba(255,255,255,0.06)",
+                borderRadius: "28px 28px 0 0",
+                border: "1px solid rgba(124,58,237,0.12)",
                 borderBottom: "none",
-                background: "#0d0d22",
-                backdropFilter: "blur(24px)",
-                padding: "0 0 32px",
+                background: "linear-gradient(180deg, #0f0f2a 0%, #09091d 100%)",
+                backdropFilter: "blur(32px)",
+                paddingBottom: "max(24px, env(safe-area-inset-bottom))",
               }}>
                 {/* Drag handle */}
-                <div style={{ display: "flex", justifyContent: "center", padding: "14px 0 10px" }}>
-                  <div style={{ width: "36px", height: "3px", borderRadius: "2px", background: "rgba(255,255,255,0.12)" }} />
+                <div style={{ display: "flex", justifyContent: "center", padding: "14px 0 0" }}>
+                  <div style={{ width: "36px", height: "4px", borderRadius: "2px", background: "rgba(255,255,255,0.1)" }} />
                 </div>
 
-                {/* Nav links */}
-                <div style={{ display: "flex", flexDirection: "column", padding: "8px 20px 0" }}>
+                {/* Nav grid — 2 columns */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", padding: "16px 16px 0" }}>
                   {navKeys.map((item, idx) => {
                     const isActive = activeSection === item.id;
                     return (
                       <motion.button
                         key={item.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.04, duration: 0.3 }}
+                        initial={{ opacity: 0, scale: 0.88, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ delay: idx * 0.055, duration: 0.32, ease: [0.22,1,0.36,1] }}
                         onClick={() => go(item.id)}
                         style={{
-                          display: "flex", alignItems: "center", justifyContent: "space-between",
-                          padding: "16px 4px",
-                          background: "none", border: "none", cursor: "pointer",
-                          borderBottom: idx < navKeys.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
-                          fontFamily: "var(--font-sans)",
-                          fontSize: "16px",
-                          fontWeight: isActive ? 600 : 400,
-                          letterSpacing: "0.01em",
-                          color: isActive ? "#ffffff" : "rgba(255,255,255,0.45)",
-                          textTransform: "capitalize",
-                          textAlign: "left",
+                          display: "flex", flexDirection: "column", alignItems: "flex-start",
+                          padding: "16px 14px 14px",
+                          borderRadius: "18px",
+                          background: isActive
+                            ? "linear-gradient(135deg, rgba(124,58,237,0.28) 0%, rgba(107,33,168,0.18) 100%)"
+                            : "rgba(255,255,255,0.04)",
+                          border: isActive
+                            ? "1px solid rgba(167,139,250,0.35)"
+                            : "1px solid rgba(255,255,255,0.07)",
+                          cursor: "pointer",
+                          gap: "12px",
+                          position: "relative", overflow: "hidden",
+                          boxShadow: isActive ? "0 0 20px rgba(124,58,237,0.2)" : "none",
+                          transition: "all 0.25s ease",
                         }}
                       >
-                        {t(item.tKey)}
+                        {/* Number */}
+                        <span style={{
+                          fontFamily: "var(--font-sans)", fontSize: "10px", fontWeight: 700,
+                          letterSpacing: "0.06em",
+                          color: isActive ? "#a78bfa" : "rgba(255,255,255,0.22)",
+                        }}>
+                          {String(idx + 1).padStart(2, "0")}
+                        </span>
+                        {/* Name */}
+                        <span style={{
+                          fontFamily: "var(--font-sans)", fontSize: "16px", lineHeight: 1.2,
+                          fontWeight: isActive ? 700 : 400,
+                          color: isActive ? "#ffffff" : "rgba(255,255,255,0.48)",
+                          textTransform: "capitalize",
+                        }}>
+                          {t(item.tKey)}
+                        </span>
+                        {/* Active dot */}
                         {isActive && (
-                          <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#7C3AED", flexShrink: 0 }} />
+                          <span style={{
+                            position: "absolute", bottom: "12px", right: "12px",
+                            width: "7px", height: "7px", borderRadius: "50%",
+                            background: "#9b7bff",
+                            boxShadow: "0 0 8px rgba(155,123,255,0.8)",
+                          }} />
                         )}
                       </motion.button>
                     );
                   })}
 
-                  {/* Promo row */}
+                  {/* Promo card */}
                   <motion.button
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: navKeys.length * 0.04, duration: 0.3 }}
+                    initial={{ opacity: 0, scale: 0.88, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ delay: navKeys.length * 0.055, duration: 0.32, ease: [0.22,1,0.36,1] }}
                     onClick={() => go("promocion")}
                     style={{
-                      display: "flex", alignItems: "center", gap: "10px",
-                      padding: "16px 4px",
-                      background: "none", border: "none", cursor: "pointer",
-                      borderBottom: "1px solid rgba(255,255,255,0.05)",
-                      fontFamily: "var(--font-sans)",
-                      fontSize: "16px",
-                      fontWeight: 500,
-                      color: "#D4A017",
-                      textAlign: "left",
+                      display: "flex", flexDirection: "column", alignItems: "flex-start",
+                      padding: "16px 14px 14px",
+                      borderRadius: "18px",
+                      background: "rgba(212,160,23,0.07)",
+                      border: "1px solid rgba(212,160,23,0.2)",
+                      cursor: "pointer", gap: "12px",
+                      position: "relative", overflow: "hidden",
                     }}
                   >
                     <motion.span
                       animate={{ opacity: [1, 0.3, 1] }}
                       transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                      style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#D4A017", flexShrink: 0, display: "block" }}
+                      style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#D4A017", display: "block" }}
                     />
-                    Promo Mundial
+                    <span style={{
+                      fontFamily: "var(--font-sans)", fontSize: "14px", lineHeight: 1.2,
+                      fontWeight: 600, color: "#D4A017",
+                    }}>
+                      Promo<br />Mundial
+                    </span>
                   </motion.button>
                 </div>
 
                 {/* CTA */}
-                <div style={{ padding: "20px 20px 0" }}>
-                  <button
+                <div style={{ padding: "14px 16px 0" }}>
+                  <motion.button
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: (navKeys.length + 1) * 0.055, duration: 0.3, ease: [0.22,1,0.36,1] }}
                     onClick={() => go("contact")}
                     style={{
                       width: "100%",
                       display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-                      padding: "16px",
-                      borderRadius: "16px",
+                      padding: "17px",
+                      borderRadius: "18px",
                       border: "none",
-                      background: "#7C3AED",
+                      background: "linear-gradient(135deg, #7b5bff 0%, #9b7bff 100%)",
                       color: "#ffffff",
                       fontFamily: "var(--font-sans)",
-                      fontSize: "15px",
-                      fontWeight: 600,
+                      fontSize: "16px",
+                      fontWeight: 700,
                       letterSpacing: "0.01em",
                       cursor: "pointer",
+                      boxShadow: "0 0 28px rgba(123,91,255,0.4)",
                     }}
                   >
                     {t("header.cta")}
-                    <ArrowRight style={{ width: "16px", height: "16px" }} />
-                  </button>
+                    <ArrowRight style={{ width: "17px", height: "17px" }} />
+                  </motion.button>
                 </div>
               </div>
             </motion.div>
