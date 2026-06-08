@@ -81,115 +81,6 @@ function HackerText({ text, className }: { text: string; className?: string }) {
   );
 }
 
-/* ── Floating code cards ───────────────────────────────── */
-type Line = { text: string; cls: string };
-type Snippet = Line[];
-
-const SLOTS: Snippet[][] = [
-  // Slot A — top right
-  [
-    [
-      { text: "const site = {", cls: "text-accent" },
-      { text: '  stack: "Next.js",', cls: "text-amber-300" },
-      { text: "  live: true,", cls: "text-green-400" },
-      { text: "}", cls: "text-white/30" },
-    ],
-    [
-      { text: "const cliente = {", cls: "text-accent" },
-      { text: '  web: "live ✓",', cls: "text-green-400" },
-      { text: "  perf: 99,", cls: "text-accent-soft" },
-      { text: "}", cls: "text-white/30" },
-    ],
-    [
-      { text: "const negocio = {", cls: "text-accent" },
-      { text: '  estado: "activo",', cls: "text-green-400" },
-      { text: '  ventas: "+80%",', cls: "text-amber-300" },
-      { text: "}", cls: "text-white/30" },
-    ],
-  ],
-  // Slot B — right middle
-  [
-    [
-      { text: "git push origin main", cls: "text-accent-pale" },
-      { text: "→ deploy success ✓", cls: "text-green-400" },
-    ],
-    [
-      { text: "npm run build", cls: "text-accent-pale" },
-      { text: "✓ compiled in 1.2s", cls: "text-green-400" },
-    ],
-    [
-      { text: "lighthouse: 99/100", cls: "text-accent-soft" },
-      { text: "SEO rank: A+", cls: "text-amber-300" },
-    ],
-  ],
-  // Slot C — bottom left
-  [
-    [
-      { text: "deploy() → ✓ live", cls: "text-green-400" },
-      { text: "perf  98/100", cls: "text-accent-soft" },
-    ],
-    [
-      { text: "clientes: 120+", cls: "text-accent-pale" },
-      { text: "satisfacción: 100%", cls: "text-amber-300" },
-    ],
-    [
-      { text: "uptime: 99.9%", cls: "text-accent-soft" },
-      { text: "conversiones: +3x", cls: "text-green-400" },
-    ],
-  ],
-];
-
-function CodeCard({
-  snippets,
-  className,
-  interval = 3200,
-  delay = 0,
-}: {
-  snippets: Snippet[];
-  className?: string;
-  interval?: number;
-  delay?: number;
-}) {
-  const [idx, setIdx] = useState(0);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const t = setTimeout(() => setMounted(true), delay);
-    return () => clearTimeout(t);
-  }, [delay]);
-
-  useEffect(() => {
-    if (!mounted) return;
-    const id = setInterval(() => setIdx((p) => (p + 1) % snippets.length), interval);
-    return () => clearInterval(id);
-  }, [mounted, snippets.length, interval]);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12, scale: 0.93 }}
-      animate={mounted ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0 }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      className={`absolute rounded-2xl border border-white/[0.08] bg-[#080614]/80 backdrop-blur-md px-4 py-3 shadow-card pointer-events-none ${className ?? ""}`}
-    >
-      <AnimatePresence mode="wait">
-        <motion.pre
-          key={idx}
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -5 }}
-          transition={{ duration: 0.22 }}
-          className="font-mono text-[11px] leading-[1.75] select-none"
-        >
-          {snippets[idx].map((line, i) => (
-            <div key={i} className={line.cls}>
-              {line.text}
-            </div>
-          ))}
-        </motion.pre>
-      </AnimatePresence>
-    </motion.div>
-  );
-}
 
 /* ── Background aurora ─────────────────────────────────── */
 function HeroBackground() {
@@ -368,7 +259,7 @@ export function Hero() {
             </div>
           </motion.div>
 
-          {/* ── Right: Three.js + code cards ── */}
+          {/* ── Right: Three.js ── */}
           <motion.div
             className="relative hidden lg:flex items-center justify-center"
             initial={{ opacity: 0 }}
@@ -376,26 +267,6 @@ export function Hero() {
             transition={{ duration: 1.6, delay: 1.0, ease: "easeOut" }}
           >
             <Hero3DScene className="h-[540px] w-full" />
-
-            {/* Floating code snippets */}
-            <CodeCard
-              snippets={SLOTS[0]}
-              className="top-8 right-4"
-              interval={3200}
-              delay={2200}
-            />
-            <CodeCard
-              snippets={SLOTS[1]}
-              className="bottom-24 right-6"
-              interval={3600}
-              delay={2800}
-            />
-            <CodeCard
-              snippets={SLOTS[2]}
-              className="bottom-6 left-6"
-              interval={3000}
-              delay={2500}
-            />
           </motion.div>
 
         </div>

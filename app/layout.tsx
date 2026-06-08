@@ -11,7 +11,7 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://mindacode.com"),
-  title: "Minda Code | Agencia Digital — Desarrollo Web & Mobile Premium",
+  title: "Mindacode — Agencia Digital",
   description:
     "Agencia digital especializada en desarrollo web, apps móviles, inteligencia artificial y arquitecturas escalables. Diseñamos el futuro digital de tu negocio.",
   keywords: [
@@ -27,7 +27,10 @@ export const metadata: Metadata = {
   authors: [{ name: "Minda Code" }],
   creator: "Minda Code",
   publisher: "Minda Code",
-  icons: { icon: "/favicon.ico" },
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
   alternates: {
     canonical: "/",
     languages: {

@@ -30,7 +30,7 @@ export function Hero3DScene({ className }: { className?: string }) {
         powerPreference: "high-performance",
       });
       renderer.setClearColor(0x000000, 0);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
@@ -48,96 +48,112 @@ export function Hero3DScene({ className }: { className?: string }) {
       const group = new THREE.Group();
       scene.add(group);
 
-      // Outer wireframe icosahedron — purple
-      const outerGeo = new THREE.IcosahedronGeometry(1.5, 2);
-      const outerMat = new THREE.MeshBasicMaterial({
-        color: 0x7b5bff,
+      // ── Textura de estrella: círculo con halo suave (evita cuadrados)
+      const starSize = 64;
+      const starCanvas = document.createElement("canvas");
+      starCanvas.width = starSize; starCanvas.height = starSize;
+      const ctx = starCanvas.getContext("2d")!;
+      const cx = starSize / 2;
+      // Halo exterior difuso
+      const halo = ctx.createRadialGradient(cx, cx, 0, cx, cx, cx);
+      halo.addColorStop(0,    "rgba(255,255,255,1)");
+      halo.addColorStop(0.12, "rgba(255,255,255,0.95)");
+      halo.addColorStop(0.35, "rgba(255,255,255,0.45)");
+      halo.addColorStop(0.7,  "rgba(255,255,255,0.08)");
+      halo.addColorStop(1,    "rgba(255,255,255,0)");
+      ctx.fillStyle = halo;
+      ctx.fillRect(0, 0, starSize, starSize);
+      // Destello cruzado sutil
+      const streak = (angle: number) => {
+        ctx.save();
+        ctx.translate(cx, cx); ctx.rotate(angle);
+        const g = ctx.createLinearGradient(-cx, 0, cx, 0);
+        g.addColorStop(0,   "rgba(255,255,255,0)");
+        g.addColorStop(0.45,"rgba(255,255,255,0.18)");
+        g.addColorStop(0.5, "rgba(255,255,255,0.55)");
+        g.addColorStop(0.55,"rgba(255,255,255,0.18)");
+        g.addColorStop(1,   "rgba(255,255,255,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(-cx, -1.5, starSize, 3);
+        ctx.restore();
+      };
+      streak(0); streak(Math.PI / 2);
+      const starTex = new THREE.CanvasTexture(starCanvas);
+
+      // ── TorusKnot — segmentos reducidos para mejor perf
+      const torusKnotGeo = new THREE.TorusKnotGeometry(1.3, 0.38, 160, 12, 2, 3);
+      const torusKnotMat = new THREE.MeshBasicMaterial({
+        color: 0x8b5cf6,
         wireframe: true,
         transparent: true,
-        opacity: 0.28,
+        opacity: 0.38,
       });
-      const outerIco = new THREE.Mesh(outerGeo, outerMat);
-      group.add(outerIco);
+      const torusKnot = new THREE.Mesh(torusKnotGeo, torusKnotMat);
+      group.add(torusKnot);
 
-      // Inner wireframe icosahedron — lighter purple, counter-rotating
-      const innerGeo = new THREE.IcosahedronGeometry(0.88, 1);
-      const innerMat = new THREE.MeshBasicMaterial({
-        color: 0x9b7bff,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.22,
-      });
-      const innerIco = new THREE.Mesh(innerGeo, innerMat);
-      group.add(innerIco);
+      // Posiciones originales y fases precalculadas (evita multiplicaciones en el loop)
+      const posArr   = torusKnotGeo.attributes.position.array as Float32Array;
+      const nv       = posArr.length / 3;
+      const origPos  = new Float32Array(posArr);          // copia inmutable
+      const phases   = new Float32Array(nv * 3);          // cache de fases
 
-      // Orbital ring 1 — cyan, tilted ~60 deg
-      const ring1Geo = new THREE.TorusGeometry(2.1, 0.007, 4, 100);
-      const ring1Mat = new THREE.MeshBasicMaterial({
-        color: 0x5cd0ff,
-        transparent: true,
-        opacity: 0.42,
-      });
-      const ring1 = new THREE.Mesh(ring1Geo, ring1Mat);
-      ring1.rotation.x = Math.PI / 3;
-      group.add(ring1);
+      for (let i = 0; i < nv; i++) {
+        const fi        = i / nv;
+        phases[i * 3]   = fi * Math.PI * 14;   // onda principal
+        phases[i * 3 + 1] = fi * Math.PI * 22; // ripple rápido
+        phases[i * 3 + 2] = fi * Math.PI * 7;  // ondulación lenta
+      }
 
-      // Orbital ring 2 — purple, tilted differently
-      const ring2Geo = new THREE.TorusGeometry(2.45, 0.005, 4, 100);
-      const ring2Mat = new THREE.MeshBasicMaterial({
-        color: 0x7b5bff,
-        transparent: true,
-        opacity: 0.22,
-      });
-      const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
-      ring2.rotation.x = -Math.PI / 5;
-      ring2.rotation.y = Math.PI / 4;
-      group.add(ring2);
-
-      // Particles — scattered in a sphere around the core
-      const PCOUNT = 150;
-      const pPos = new Float32Array(PCOUNT * 3);
-      const pCol = new Float32Array(PCOUNT * 3);
+      // ── Partículas
+      const PCOUNT   = 180;
+      const pPos     = new Float32Array(PCOUNT * 3);
+      const pOrig    = new Float32Array(PCOUNT * 3); // para movimiento oscilante (no acumulativo)
+      const pSpeeds  = new Float32Array(PCOUNT * 3);
+      const pCol     = new Float32Array(PCOUNT * 3);
       const cA = new THREE.Color(0x9b7bff);
-      const cB = new THREE.Color(0x5cd0ff);
-      const cC = new THREE.Color(0xffffff);
+      const cB = new THREE.Color(0x60a5fa);
+      const cC = new THREE.Color(0xe879f9);
 
       for (let i = 0; i < PCOUNT; i++) {
         const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(2 * Math.random() - 1);
-        const r = 2.5 + Math.random() * 1.7;
-        pPos[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
-        pPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-        pPos[i * 3 + 2] = r * Math.cos(phi);
-
+        const phi   = Math.acos(2 * Math.random() - 1);
+        const r     = 2.2 + Math.random() * 2.1;
+        const x = r * Math.sin(phi) * Math.cos(theta);
+        const y = r * Math.sin(phi) * Math.sin(theta);
+        const z = r * Math.cos(phi);
+        pPos[i*3]=x; pPos[i*3+1]=y; pPos[i*3+2]=z;
+        pOrig[i*3]=x; pOrig[i*3+1]=y; pOrig[i*3+2]=z;
+        pSpeeds[i*3]   = 0.18 + Math.random() * 0.25;
+        pSpeeds[i*3+1] = 0.14 + Math.random() * 0.22;
+        pSpeeds[i*3+2] = 0.16 + Math.random() * 0.28;
         const t = Math.random();
-        const c = t < 0.6
-          ? cA.clone().lerp(cB, t / 0.6)
-          : cB.clone().lerp(cC, (t - 0.6) / 0.4);
-        pCol[i * 3] = c.r; pCol[i * 3 + 1] = c.g; pCol[i * 3 + 2] = c.b;
+        const c = t < 0.5 ? cA.clone().lerp(cB, t/0.5) : cB.clone().lerp(cC, (t-0.5)/0.5);
+        pCol[i*3]=c.r; pCol[i*3+1]=c.g; pCol[i*3+2]=c.b;
       }
 
       const pGeo = new THREE.BufferGeometry();
       pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
-      pGeo.setAttribute("color", new THREE.BufferAttribute(pCol, 3));
+      pGeo.setAttribute("color",    new THREE.BufferAttribute(pCol, 3));
       const pMat = new THREE.PointsMaterial({
-        size: 0.042,
+        size: 0.11,
+        map: starTex,
         vertexColors: true,
         transparent: true,
-        opacity: 0.72,
+        opacity: 0.82,
         sizeAttenuation: true,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
+        alphaTest: 0.004,
       });
       const particlesMesh = new THREE.Points(pGeo, pMat);
       group.add(particlesMesh);
 
-      // Mouse parallax state
-      let targetRotY = 0;
-      let targetRotX = 0;
+      // Mouse parallax
+      let targetRotY = 0, targetRotX = 0;
       const onMouseMove = (e: MouseEvent) => {
         const rect = mount.getBoundingClientRect();
-        targetRotY = ((e.clientX - rect.left) / mount.clientWidth - 0.5) * 0.55;
-        targetRotX = -((e.clientY - rect.top) / mount.clientHeight - 0.5) * 0.38;
+        targetRotY = ((e.clientX - rect.left) / mount.clientWidth  - 0.5) * 0.5;
+        targetRotX = -((e.clientY - rect.top)  / mount.clientHeight - 0.5) * 0.35;
       };
       document.addEventListener("mousemove", onMouseMove);
 
@@ -151,17 +167,38 @@ export function Hero3DScene({ className }: { className?: string }) {
       const loop = () => {
         if (disposed) return;
         rafId = requestAnimationFrame(loop);
+        if (document.hidden) return; // no renderizar si la pestaña no es visible
         const el = clock.getElapsedTime();
 
-        outerIco.rotation.x = el * 0.11;
-        outerIco.rotation.y = el * 0.17;
-        innerIco.rotation.x = -el * 0.21;
-        innerIco.rotation.z = el * 0.14;
-        ring1.rotation.z = el * 0.09;
-        ring2.rotation.z = -el * 0.06;
-        particlesMesh.rotation.y = el * 0.05;
-        particlesMesh.rotation.x = el * 0.024;
+        // ── Worm displacement — fases precalculadas, amplitudes optimizadas
+        for (let i = 0; i < nv; i++) {
+          const ox = origPos[i*3], oy = origPos[i*3+1], oz = origPos[i*3+2];
+          const p1 = phases[i*3], p2 = phases[i*3+1], p3 = phases[i*3+2];
 
+          posArr[i*3]   = ox + Math.sin(el*1.3+p1)*0.16 + Math.cos(el*0.6+p2)*0.08;
+          posArr[i*3+1] = oy + Math.cos(el*1.0+p1*0.9)*0.15 + Math.sin(el*1.7+p3)*0.06;
+          posArr[i*3+2] = oz + Math.sin(el*0.8+p2*0.7)*0.13 + Math.cos(el*1.4+p1*0.5)*0.07;
+        }
+        torusKnotGeo.attributes.position.needsUpdate = true;
+
+        // Respiración de opacidad
+        torusKnotMat.opacity = 0.32 + Math.sin(el * 0.5) * 0.09;
+
+        // Rotación global suave
+        torusKnot.rotation.x = el * 0.055;
+        torusKnot.rotation.y = el * 0.085;
+        torusKnot.rotation.z = el * 0.035;
+
+        // Partículas — oscilación acotada (sin acumulación de drift)
+        const pa = pGeo.attributes.position.array as Float32Array;
+        for (let i = 0; i < PCOUNT; i++) {
+          pa[i*3]   = pOrig[i*3]   + Math.sin(el*pSpeeds[i*3]   + i*0.71) * 0.18;
+          pa[i*3+1] = pOrig[i*3+1] + Math.cos(el*pSpeeds[i*3+1] + i*1.13) * 0.14;
+          pa[i*3+2] = pOrig[i*3+2] + Math.sin(el*pSpeeds[i*3+2] + i*0.93) * 0.16;
+        }
+        pGeo.attributes.position.needsUpdate = true;
+
+        // Parallax suave
         group.rotation.y += (targetRotY - group.rotation.y) * 0.04;
         group.rotation.x += (targetRotX - group.rotation.x) * 0.04;
 
@@ -174,27 +211,17 @@ export function Hero3DScene({ className }: { className?: string }) {
         cancelAnimationFrame(rafId);
         document.removeEventListener("mousemove", onMouseMove);
         ro.disconnect();
-        outerGeo.dispose(); outerMat.dispose();
-        innerGeo.dispose(); innerMat.dispose();
-        ring1Geo.dispose(); ring1Mat.dispose();
-        ring2Geo.dispose(); ring2Mat.dispose();
-        pGeo.dispose(); pMat.dispose();
+        torusKnotGeo.dispose(); torusKnotMat.dispose();
+        pGeo.dispose(); pMat.dispose(); starTex.dispose();
         renderer.dispose();
         if (mount.contains(canvas)) mount.removeChild(canvas);
       };
 
-      if (disposed) {
-        disposeHandle();
-        disposeHandle = undefined;
-      }
+      if (disposed) { disposeHandle(); disposeHandle = undefined; }
     };
 
     void boot();
-
-    return () => {
-      disposed = true;
-      disposeHandle?.();
-    };
+    return () => { disposed = true; disposeHandle?.(); };
   }, [prefersReducedMotion]);
 
   if (prefersReducedMotion) return null;
@@ -204,6 +231,13 @@ export function Hero3DScene({ className }: { className?: string }) {
       ref={mountRef}
       aria-hidden
       className={className}
+      style={{
+        // Vignette — desvanece los bordes del canvas suavemente
+        WebkitMaskImage:
+          "radial-gradient(ellipse 80% 78% at 52% 50%, black 30%, rgba(0,0,0,0.6) 58%, transparent 82%)",
+        maskImage:
+          "radial-gradient(ellipse 80% 78% at 52% 50%, black 30%, rgba(0,0,0,0.6) 58%, transparent 82%)",
+      }}
     />
   );
 }

@@ -31,32 +31,13 @@ export function AnimatedLogo({ className, textClassName }: AnimatedLogoProps) {
       whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
       aria-label="Minda Code — ir al inicio"
     >
-      <span className={cn("text-xl font-semibold tracking-tight text-white", textClassName)}>
-        minda
-      </span>
-      <motion.span
-        className={cn("ml-2 text-xl font-semibold tracking-tight", textClassName)}
-        animate={
-          prefersReducedMotion
-            ? undefined
-            : { backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }
-        }
-        transition={{
-          duration: 4,
-          ease: "easeInOut",
-          repeat: Infinity
-        }}
-        style={{
-          backgroundImage: "linear-gradient(to right, #9b8bff, #7b5bff, #5cd0ff)",
-          backgroundSize: "200% 200%",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          backgroundClip: "text",
-          color: "transparent",
-        }}
+      <span
+        className={cn("font-semibold tracking-tight", textClassName)}
+        style={{ letterSpacing: "-0.02em" }}
       >
-        code
-      </motion.span>
+        <span style={{ color: "#ffffff" }}>minda</span>
+        <span style={{ color: "#7C3AED" }}>code</span>
+      </span>
     </motion.a>
   );
 }
