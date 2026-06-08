@@ -159,6 +159,12 @@ export function Hero3DScene({ className }: { className?: string }) {
 
       const ro = new ResizeObserver(setSize);
       ro.observe(mount);
+      // window resize catches breakpoint crossings (hidden lg:flex) that ResizeObserver may miss
+      window.addEventListener("resize", setSize, { passive: true });
+      // matchMedia fires the exact moment the lg breakpoint is crossed
+      const mq = window.matchMedia("(min-width: 1024px)");
+      const onMQ = () => { if (mq.matches) setSize(); };
+      mq.addEventListener("change", onMQ);
       setSize();
 
       const clock = new THREE.Clock();
@@ -210,6 +216,8 @@ export function Hero3DScene({ className }: { className?: string }) {
       disposeHandle = () => {
         cancelAnimationFrame(rafId);
         document.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("resize", setSize);
+        mq.removeEventListener("change", onMQ);
         ro.disconnect();
         torusKnotGeo.dispose(); torusKnotMat.dispose();
         pGeo.dispose(); pMat.dispose(); starTex.dispose();
