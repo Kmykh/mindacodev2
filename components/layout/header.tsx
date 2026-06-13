@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ArrowRight } from "lucide-react";
 import { AnimatedLogo } from "@/components/ui/animated-logo";
 import { cn, smoothScrollTo } from "@/lib/utils";
+import { syncUrlToSection } from "@/lib/routes";
 import { useT } from "@/lib/i18n";
 
 const navKeys = [
@@ -28,9 +29,14 @@ export function Header() {
   }, []);
 
   useEffect(() => {
-    const ids = navKeys.map(i => i.id);
+    // Observe the hero too so scrolling back to the top restores the "/" URL.
+    const ids = [...navKeys.map(i => i.id), "hero"];
     const observer = new IntersectionObserver(
-      entries => entries.forEach(e => { if (e.isIntersecting) setActiveSection(e.target.id); }),
+      entries => entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        if (e.target.id !== "hero") setActiveSection(e.target.id);
+        syncUrlToSection(e.target.id);
+      }),
       { rootMargin: "-30% 0px -60% 0px" }
     );
     ids.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
@@ -48,7 +54,7 @@ export function Header() {
     return () => window.removeEventListener("keydown", onKey);
   }, [menuOpen]);
 
-  const go = (id: string, offset = 100) => { setMenuOpen(false); smoothScrollTo(id, offset); };
+  const go = (id: string, offset = 100) => { setMenuOpen(false); syncUrlToSection(id); smoothScrollTo(id, offset); };
 
   return (
     <>

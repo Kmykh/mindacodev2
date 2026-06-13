@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Instagram } from "lucide-react";
 import { AnimatedLogo } from "@/components/ui/animated-logo";
 import { smoothScrollTo } from "@/lib/utils";
+import { syncUrlToSection } from "@/lib/routes";
 
 /* ── Social icons ── */
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -84,7 +85,7 @@ export function Footer() {
           {NAV.map(item => (
             <button
               key={item.id}
-              onClick={() => smoothScrollTo(item.id)}
+              onClick={() => { syncUrlToSection(item.id); smoothScrollTo(item.id); }}
               style={{ background:"none", border:"none", cursor:"pointer", fontFamily:"var(--font-sans)", fontWeight:400, fontSize:"13px", color:"rgba(255,255,255,0.38)", padding:"4px 0", transition:"color 0.2s", letterSpacing:"0.02em" }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "#ffffff"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.38)"; }}

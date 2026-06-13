@@ -169,6 +169,17 @@ export function Hero() {
         <Hero3DScene className="h-full w-full" />
       </div>
 
+      {/* Oscurecedor solo en móvil: atenúa el núcleo brillante de la galaxia (detrás del texto)
+          con un radial centrado, para que las palabras del hero se lean con claridad. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 md:hidden"
+        style={{
+          background:
+            "radial-gradient(ellipse 70% 55% at 50% 45%, rgba(7,7,26,0.78) 0%, rgba(7,7,26,0.6) 45%, rgba(7,7,26,0.4) 75%, rgba(7,7,26,0.5) 100%)",
+        }}
+      />
+
       <div className="relative z-10 mx-auto w-full max-w-7xl">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[56fr_44fr]">
 
