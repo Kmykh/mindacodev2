@@ -1,52 +1,52 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { X, ArrowUpRight, ArrowRight } from "lucide-react";
 import { AnimatedLogo } from "@/components/ui/animated-logo";
-import { cn, smoothScrollTo } from "@/lib/utils";
-import { syncUrlToSection } from "@/lib/routes";
-import { useT } from "@/lib/i18n";
+import { smoothScrollTo } from "@/lib/utils";
+import { syncUrlToSection, pathForSection } from "@/lib/routes";
 
-const navKeys = [
-  { tKey: "header.services",  id: "services"  },
-  { tKey: "header.portfolio", id: "portfolio" },
-  { tKey: "header.process",   id: "process"   },
-  { tKey: "header.about",     id: "about"     },
-  { tKey: "header.contact",   id: "contact"   },
+/* ── Navegación principal (columna izquierda del overlay) ── */
+const NAV = [
+  { label: "Inicio",     id: "hero"      },
+  { label: "Servicios",  id: "services"  },
+  { label: "Portafolio", id: "portfolio" },
+  { label: "Proceso",    id: "process"   },
+  { label: "Nosotros",   id: "about"     },
+  { label: "Contacto",   id: "contact"   },
 ];
 
+/* ── Servicios (columna derecha) — index = panel del carrusel de Servicios ── */
+const SERVICES = [
+  { label: "Chatbot IA",              index: 0 },
+  { label: "Landing Pages",           index: 3 },
+  { label: "Apps Móviles",            index: 5 },
+  { label: "E-commerce",              index: 4 },
+  { label: "Automatizaciones",        index: 1 },
+  { label: "Sistemas de Facturación", index: 8 },
+];
+
+/* ── Variants para el stagger de los links ── */
+const listVariants: Variants = {
+  hidden: {},
+  visible: { transition: { delayChildren: 0.5, staggerChildren: 0.07 } },
+};
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 28 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+};
+
 export function Header() {
-  const { t } = useT();
-  const [scrolled,       setScrolled]       = useState(false);
-  const [menuOpen,       setMenuOpen]       = useState(false);
-  const [activeSection,  setActiveSection]  = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    // Observe the hero too so scrolling back to the top restores the "/" URL.
-    const ids = [...navKeys.map(i => i.id), "hero"];
-    const observer = new IntersectionObserver(
-      entries => entries.forEach(e => {
-        if (!e.isIntersecting) return;
-        if (e.target.id !== "hero") setActiveSection(e.target.id);
-        syncUrlToSection(e.target.id);
-      }),
-      { rootMargin: "-30% 0px -60% 0px" }
-    );
-    ids.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
-    return () => observer.disconnect();
-  }, []);
-
+  // Bloquea el scroll de fondo mientras el overlay está abierto.
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "unset";
+    return () => { document.body.style.overflow = "unset"; };
   }, [menuOpen]);
 
+  // Escape cierra el overlay.
   useEffect(() => {
     if (!menuOpen) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMenuOpen(false); };
@@ -54,318 +54,314 @@ export function Header() {
     return () => window.removeEventListener("keydown", onKey);
   }, [menuOpen]);
 
-  const go = (id: string, offset = 100) => { setMenuOpen(false); syncUrlToSection(id); smoothScrollTo(id, offset); };
+  // Cierra el overlay y luego hace scroll suave + actualiza la URL.
+  const goTo = (id: string, offset = 100) => {
+    setMenuOpen(false);
+    syncUrlToSection(id);
+    setTimeout(() => smoothScrollTo(id, offset), 140);
+  };
+  const onNavClick = (e: React.MouseEvent, id: string, offset = 100) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || (e as React.MouseEvent).button === 1) return;
+    e.preventDefault();
+    goTo(id, offset);
+  };
+
+  // Va al carrusel de Servicios y lo posiciona en la tarjeta exacta.
+  const onServiceClick = (e: React.MouseEvent, index: number) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+    e.preventDefault();
+    setMenuOpen(false);
+    syncUrlToSection("services");
+    setTimeout(() => {
+      smoothScrollTo("services", 100);
+      window.dispatchEvent(new CustomEvent("mc:goService", { detail: index }));
+    }, 160);
+  };
 
   return (
     <>
+      {/* ════════ HEADER (estado cerrado) ════════ */}
       <motion.header
-        className={cn(
-          "fixed inset-x-0 z-50 flex justify-center px-4 transition-all duration-500",
-          scrolled ? "pt-3" : "pt-5"
-        )}
-        initial={{ y: -80, opacity: 0 }}
+        className="hdr-bar fixed inset-x-0 top-0 z-50 flex items-center justify-between"
+        initial={{ y: -60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div
-          className={cn(
-            "relative flex w-full max-w-6xl items-center justify-between rounded-full border px-6 py-3 transition-all duration-500 sm:px-8",
-            scrolled
-              ? "border-white/[0.08] bg-[#07071a]/85 backdrop-blur-2xl shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
-              : "border-white/[0.04] bg-white/[0.015] backdrop-blur-md"
-          )}
+        <AnimatedLogo textClassName="text-xl font-bold" />
+
+        {/* Botón de menú */}
+        <button
+          type="button"
+          onClick={() => setMenuOpen(true)}
+          className="group flex items-center gap-3"
+          style={{ background: "none", border: "none", cursor: "pointer" }}
+          aria-label="Abrir menú"
+          aria-expanded={menuOpen}
         >
-          {/* Logo */}
-          <AnimatedLogo textClassName="text-lg sm:text-xl" />
-
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center" style={{ gap: "2px" }}>
-            {navKeys.map(item => {
-              const isActive = activeSection === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => go(item.id)}
-                  style={{
-                    position: "relative",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "7px 16px",
-                    borderRadius: "100px",
-                    background: isActive ? "rgba(124,58,237,0.14)" : "transparent",
-                    border: isActive ? "1px solid rgba(167,139,250,0.22)" : "1px solid transparent",
-                    cursor: "pointer",
-                    fontFamily: "var(--font-sans)",
-                    fontSize: "12.5px",
-                    fontWeight: isActive ? 500 : 400,
-                    letterSpacing: "0.04em",
-                    color: isActive ? "#c4b5fd" : "rgba(255,255,255,0.42)",
-                    transition: "all 0.25s",
-                    textTransform: "uppercase",
-                    whiteSpace: "nowrap",
-                  }}
-                  onMouseEnter={e => {
-                    if (!isActive) {
-                      const b = e.currentTarget as HTMLButtonElement;
-                      b.style.color = "rgba(255,255,255,0.75)";
-                      b.style.background = "rgba(255,255,255,0.04)";
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (!isActive) {
-                      const b = e.currentTarget as HTMLButtonElement;
-                      b.style.color = "rgba(255,255,255,0.42)";
-                      b.style.background = "transparent";
-                    }
-                  }}
-                >
-                  {t(item.tKey)}
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* CTA buttons */}
-          <div className="hidden md:flex items-center" style={{ gap: "10px" }}>
-
-            {/* Promo Mundial — gold outline, no background */}
-            <button
-              onClick={() => go("promocion", 30)}
-              style={{
-                display: "flex", alignItems: "center", gap: "8px",
-                padding: "8px 18px",
-                borderRadius: "100px",
-                border: "1px solid rgba(212,160,23,0.55)",
-                background: "transparent",
-                color: "#D4A017",
-                fontFamily: "var(--font-sans)",
-                fontSize: "11.5px",
-                fontWeight: 500,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                cursor: "pointer",
-                transition: "border-color 0.25s, background 0.25s, color 0.25s",
-              }}
-              onMouseEnter={e => {
-                const b = e.currentTarget as HTMLButtonElement;
-                b.style.background = "rgba(212,160,23,0.06)";
-                b.style.borderColor = "#D4A017";
-              }}
-              onMouseLeave={e => {
-                const b = e.currentTarget as HTMLButtonElement;
-                b.style.background = "transparent";
-                b.style.borderColor = "rgba(212,160,23,0.55)";
-              }}
-            >
-              {/* Pulsing gold dot */}
-              <motion.span
-                animate={{ opacity: [1, 0.3, 1] }}
-                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                style={{
-                  width: "5px", height: "5px", borderRadius: "50%",
-                  background: "#D4A017", flexShrink: 0, display: "block",
-                }}
-              />
-              Promo Mundial
-            </button>
-
-            {/* Contáctanos — solid purple */}
-            <button
-              onClick={() => go("contact")}
-              style={{
-                display: "flex", alignItems: "center", gap: "7px",
-                padding: "10px 22px",
-                borderRadius: "100px",
-                border: "none",
-                background: "#7C3AED",
-                color: "#ffffff",
-                fontFamily: "var(--font-sans)",
-                fontSize: "12.5px",
-                fontWeight: 600,
-                letterSpacing: "0.02em",
-                cursor: "pointer",
-                transition: "opacity 0.2s",
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.82"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
-            >
-              {t("header.cta")}
-              <ArrowRight style={{ width: "13px", height: "13px", flexShrink: 0 }} />
-            </button>
-          </div>
-
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden flex items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] p-2.5 text-white/70 hover:text-white active:scale-95 transition-all min-w-[44px] min-h-[44px]"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
-            aria-expanded={menuOpen}
-          >
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
+          <span style={{ fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: "14px", color: "#ffffff" }}>
+            Menú
+          </span>
+          <span className="flex flex-col" style={{ gap: "5px" }}>
+            <span className="block transition-transform duration-300 group-hover:-translate-y-[2px]" style={{ width: "24px", height: "2px", background: "#7C3AED" }} />
+            <span className="block transition-transform duration-300 group-hover:translate-y-[2px]" style={{ width: "24px", height: "2px", background: "#7C3AED" }} />
+          </span>
+        </button>
       </motion.header>
 
-      {/* Mobile bottom sheet */}
+      {/* ════════ OVERLAY FULLSCREEN (estado abierto) ════════ */}
       <AnimatePresence>
         {menuOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-40 md:hidden"
-              style={{ background: "rgba(7,7,26,0.8)", backdropFilter: "blur(12px)" }}
-              onClick={() => setMenuOpen(false)}
+          <motion.div
+            className="fixed inset-0 z-[100] overflow-y-auto"
+            style={{ background: "#07071a" }}
+            initial={{ clipPath: "inset(0 0 100% 0)" }}
+            animate={{ clipPath: "inset(0 0 0% 0)" }}
+            exit={{ clipPath: "inset(0 0 100% 0)" }}
+            transition={{ duration: 0.6, ease: [0.77, 0, 0.175, 1] }}
+            role="dialog"
+            aria-modal="true"
+          >
+            {/* Gradiente morado tenue en las esquinas */}
+            <div
+              aria-hidden
+              style={{
+                position: "absolute", inset: 0, pointerEvents: "none",
+                background:
+                  "radial-gradient(circle at 85% 10%, rgba(124,58,237,0.16), transparent 50%), radial-gradient(circle at 5% 95%, rgba(124,58,237,0.1), transparent 55%)",
+              }}
             />
 
-            {/* Sheet */}
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 280, damping: 30 }}
-              className="fixed inset-x-0 bottom-0 z-50 md:hidden"
-              onClick={e => e.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-            >
-              <div style={{
-                borderRadius: "28px 28px 0 0",
-                border: "1px solid rgba(124,58,237,0.12)",
-                borderBottom: "none",
-                background: "linear-gradient(180deg, #0f0f2a 0%, #09091d 100%)",
-                backdropFilter: "blur(32px)",
-                paddingBottom: "max(24px, env(safe-area-inset-bottom))",
-              }}>
-                {/* Drag handle */}
-                <div style={{ display: "flex", justifyContent: "center", padding: "14px 0 0" }}>
-                  <div style={{ width: "36px", height: "4px", borderRadius: "2px", background: "rgba(255,255,255,0.1)" }} />
+            <div style={{ position: "relative", minHeight: "100%", display: "flex", flexDirection: "column" }}>
+              {/* ── Barra superior del overlay ── */}
+              <div className="hdr-bar flex items-center justify-between">
+                <div onClick={() => setMenuOpen(false)}>
+                  <AnimatedLogo textClassName="text-xl font-bold" />
                 </div>
-
-                {/* Nav grid — 2 columns */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", padding: "16px 16px 0" }}>
-                  {navKeys.map((item, idx) => {
-                    const isActive = activeSection === item.id;
-                    return (
-                      <motion.button
-                        key={item.id}
-                        initial={{ opacity: 0, scale: 0.88, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        transition={{ delay: idx * 0.055, duration: 0.32, ease: [0.22,1,0.36,1] }}
-                        onClick={() => go(item.id)}
-                        style={{
-                          display: "flex", flexDirection: "column", alignItems: "flex-start",
-                          padding: "16px 14px 14px",
-                          borderRadius: "18px",
-                          background: isActive
-                            ? "linear-gradient(135deg, rgba(124,58,237,0.28) 0%, rgba(107,33,168,0.18) 100%)"
-                            : "rgba(255,255,255,0.04)",
-                          border: isActive
-                            ? "1px solid rgba(167,139,250,0.35)"
-                            : "1px solid rgba(255,255,255,0.07)",
-                          cursor: "pointer",
-                          gap: "12px",
-                          position: "relative", overflow: "hidden",
-                          boxShadow: isActive ? "0 0 20px rgba(124,58,237,0.2)" : "none",
-                          transition: "all 0.25s ease",
-                        }}
-                      >
-                        {/* Number */}
-                        <span style={{
-                          fontFamily: "var(--font-sans)", fontSize: "10px", fontWeight: 700,
-                          letterSpacing: "0.06em",
-                          color: isActive ? "#a78bfa" : "rgba(255,255,255,0.22)",
-                        }}>
-                          {String(idx + 1).padStart(2, "0")}
-                        </span>
-                        {/* Name */}
-                        <span style={{
-                          fontFamily: "var(--font-sans)", fontSize: "16px", lineHeight: 1.2,
-                          fontWeight: isActive ? 700 : 400,
-                          color: isActive ? "#ffffff" : "rgba(255,255,255,0.48)",
-                          textTransform: "capitalize",
-                        }}>
-                          {t(item.tKey)}
-                        </span>
-                        {/* Active dot */}
-                        {isActive && (
-                          <span style={{
-                            position: "absolute", bottom: "12px", right: "12px",
-                            width: "7px", height: "7px", borderRadius: "50%",
-                            background: "#9b7bff",
-                            boxShadow: "0 0 8px rgba(155,123,255,0.8)",
-                          }} />
-                        )}
-                      </motion.button>
-                    );
-                  })}
-
-                  {/* Promo card */}
-                  <motion.button
-                    initial={{ opacity: 0, scale: 0.88, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: navKeys.length * 0.055, duration: 0.32, ease: [0.22,1,0.36,1] }}
-                    onClick={() => go("promocion")}
-                    style={{
-                      display: "flex", flexDirection: "column", alignItems: "flex-start",
-                      padding: "16px 14px 14px",
-                      borderRadius: "18px",
-                      background: "rgba(212,160,23,0.07)",
-                      border: "1px solid rgba(212,160,23,0.2)",
-                      cursor: "pointer", gap: "12px",
-                      position: "relative", overflow: "hidden",
-                    }}
-                  >
-                    <motion.span
-                      animate={{ opacity: [1, 0.3, 1] }}
-                      transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                      style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#D4A017", display: "block" }}
-                    />
-                    <span style={{
-                      fontFamily: "var(--font-sans)", fontSize: "14px", lineHeight: 1.2,
-                      fontWeight: 600, color: "#D4A017",
-                    }}>
-                      Promo<br />Mundial
-                    </span>
-                  </motion.button>
-                </div>
-
-                {/* CTA */}
-                <div style={{ padding: "14px 16px 0" }}>
-                  <motion.button
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: (navKeys.length + 1) * 0.055, duration: 0.3, ease: [0.22,1,0.36,1] }}
-                    onClick={() => go("contact")}
-                    style={{
-                      width: "100%",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-                      padding: "17px",
-                      borderRadius: "18px",
-                      border: "none",
-                      background: "linear-gradient(135deg, #7b5bff 0%, #9b7bff 100%)",
-                      color: "#ffffff",
-                      fontFamily: "var(--font-sans)",
-                      fontSize: "16px",
-                      fontWeight: 700,
-                      letterSpacing: "0.01em",
-                      cursor: "pointer",
-                      boxShadow: "0 0 28px rgba(123,91,255,0.4)",
-                    }}
-                  >
-                    {t("header.cta")}
-                    <ArrowRight style={{ width: "17px", height: "17px" }} />
-                  </motion.button>
-                </div>
+                <motion.button
+                  type="button"
+                  onClick={() => setMenuOpen(false)}
+                  whileHover={{ rotate: 90 }}
+                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "#ffffff", display: "flex", padding: "4px" }}
+                  aria-label="Cerrar menú"
+                >
+                  <X size={28} strokeWidth={2} />
+                </motion.button>
               </div>
-            </motion.div>
-          </>
+
+              {/* ── Contenido — dos columnas ── */}
+              <div className="hdr-overlay-grid">
+                {/* COLUMNA IZQUIERDA — Navegación */}
+                <motion.nav
+                  className="hdr-overlay-nav"
+                  variants={listVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  {NAV.map((item) => (
+                    <motion.a
+                      key={item.id}
+                      href={pathForSection(item.id)}
+                      onClick={e => onNavClick(e, item.id)}
+                      variants={itemVariants}
+                      whileHover={{ x: 18, color: "#7C3AED" }}
+                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                      className="hdr-nav-link group"
+                      style={{
+                        position: "relative",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        fontFamily: "var(--font-display)",
+                        fontWeight: 700,
+                        lineHeight: 1.18,
+                        letterSpacing: "-0.02em",
+                        color: "rgba(255,255,255,0.88)",
+                        textDecoration: "none",
+                        width: "fit-content",
+                      }}
+                    >
+                      {/* Flecha que aparece al hover — a la izquierda, sin cruzar el texto */}
+                      <ArrowRight
+                        aria-hidden
+                        className="hdr-nav-arrow opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0"
+                      />
+                      {item.label}
+                    </motion.a>
+                  ))}
+
+                  {/* CTA — Hablemos de tu proyecto */}
+                  <motion.a
+                    href={pathForSection("contact")}
+                    onClick={e => onNavClick(e, "contact")}
+                    variants={itemVariants}
+                    className="hdr-cta group"
+                  >
+                    <span className="hdr-cta-eyebrow">¿Tienes una idea?</span>
+                    <span className="hdr-cta-line">
+                      Hablemos de tu proyecto
+                      <ArrowRight size={26} className="hdr-cta-arrow" />
+                    </span>
+                  </motion.a>
+                </motion.nav>
+
+                {/* COLUMNA DERECHA — Servicios + Contacto */}
+                <motion.div
+                  className="hdr-overlay-side"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {/* Promo Mundial — dorado, resalta arriba de Servicios */}
+                  <a
+                    href="#promocion"
+                    onClick={e => onNavClick(e, "promocion", 30)}
+                    className="hdr-promo-top group"
+                  >
+                    Promo Mundial 2026
+                    <ArrowUpRight size={16} className="hdr-promo-top-arrow" />
+                  </a>
+
+                  <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "30px", color: "#7C3AED", letterSpacing: "-0.01em", margin: "0 0 28px" }}>
+                    Servicios
+                  </h3>
+
+                  <div className="hdr-services-grid">
+                    {SERVICES.map(s => (
+                      <a
+                        key={s.label}
+                        href={pathForSection("services")}
+                        onClick={e => onServiceClick(e, s.index)}
+                        className="hdr-service-item group"
+                      >
+                        <span className="hdr-service-dot" />
+                        <span className="hdr-service-label">{s.label}</span>
+                      </a>
+                    ))}
+                  </div>
+
+                  {/* Separador */}
+                  <div style={{ height: "1px", background: "rgba(255,255,255,0.1)", margin: "40px 0" }} />
+
+                  {/* Bloque de contacto */}
+                  <p style={{ fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: "18px", color: "#ffffff", margin: "0 0 18px" }}>
+                    Coméntanos tu proyecto
+                  </p>
+                  <a
+                    href="https://wa.me/51926948155"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: "22px", color: "#ffffff", textDecoration: "none", marginBottom: "10px", letterSpacing: "-0.01em" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = "#a78bfa"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = "#ffffff"; }}
+                  >
+                    +51 926 948 155
+                    <ArrowUpRight size={18} style={{ color: "#7C3AED" }} />
+                  </a>
+                  <div style={{ display: "flex", gap: "18px", alignItems: "center" }}>
+                    <span style={{ fontFamily: "var(--font-sans)", fontWeight: 300, fontSize: "14px", color: "rgba(255,255,255,0.5)" }}>
+                      @mindacode
+                    </span>
+                    <span style={{ width: "3px", height: "3px", borderRadius: "50%", background: "rgba(255,255,255,0.25)" }} />
+                    <span style={{ fontFamily: "var(--font-sans)", fontWeight: 300, fontSize: "14px", color: "rgba(255,255,255,0.35)" }}>
+                      Lima, Perú
+                    </span>
+                  </div>
+                </motion.div>
+              </div>
+
+            </div>
+
+            {/* Estilos del overlay */}
+            <style dangerouslySetInnerHTML={{ __html: `
+              .hdr-overlay-grid {
+                flex: 1;
+                display: grid;
+                grid-template-columns: 1.1fr 0.9fr;
+              }
+              .hdr-overlay-nav {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+                padding: 64px 64px 0;
+              }
+              .hdr-nav-link { font-size: clamp(40px, 4.6vw, 60px); }
+              .hdr-nav-arrow {
+                position: absolute; left: -46px; top: 50%;
+                width: 26px; height: 26px; color: #7C3AED;
+                margin-top: -13px;
+              }
+
+              /* CTA — Hablemos de tu proyecto */
+              .hdr-cta { display: flex; flex-direction: column; gap: 6px; margin-top: 46px; text-decoration: none; width: fit-content; }
+              .hdr-cta-eyebrow {
+                font-family: var(--font-sans); font-weight: 500; font-size: 12px;
+                letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.4);
+              }
+              .hdr-cta-line {
+                display: inline-flex; align-items: center; gap: 10px;
+                font-family: var(--font-sans); font-weight: 600; font-size: 22px;
+                color: #ffffff; transition: color .3s ease;
+              }
+              .hdr-cta:hover .hdr-cta-line { color: #a78bfa; }
+              .hdr-cta-arrow { color: #7C3AED; transition: transform .3s ease; }
+              .hdr-cta:hover .hdr-cta-arrow { transform: translateX(6px); }
+
+              .hdr-overlay-side {
+                padding: 70px 64px 0;
+                border-left: 1px solid rgba(255,255,255,0.1);
+              }
+
+              /* Promo Mundial — dorado, arriba de Servicios */
+              .hdr-promo-top {
+                display: inline-flex; align-items: center; gap: 7px; width: fit-content;
+                margin-bottom: 26px;
+                font-family: var(--font-sans); font-weight: 700; font-size: 13px;
+                letter-spacing: 0.18em; text-transform: uppercase;
+                color: #E6B93D; text-decoration: none;
+                text-shadow: 0 0 18px rgba(212,160,23,0.4);
+                transition: color .25s ease;
+              }
+              .hdr-promo-top:hover { color: #F4CE5E; }
+              .hdr-promo-top-arrow { transition: transform .25s ease; }
+              .hdr-promo-top:hover .hdr-promo-top-arrow { transform: translate(2px,-2px); }
+              .hdr-services-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 18px 24px;
+              }
+              .hdr-service-item {
+                display: flex; align-items: center; gap: 10px;
+                text-decoration: none; cursor: pointer;
+              }
+              .hdr-service-dot {
+                width: 6px; height: 6px; border-radius: 50%;
+                background: rgba(124,58,237,0.5);
+                flex-shrink: 0;
+                transition: transform .25s ease, background .25s ease;
+              }
+              .hdr-service-item:hover .hdr-service-dot { background: #7C3AED; transform: scale(1.6); }
+              .hdr-service-label {
+                font-family: var(--font-sans); font-weight: 600; font-size: 15px;
+                color: rgba(255,255,255,0.7); transition: color .25s ease;
+              }
+              .hdr-service-item:hover .hdr-service-label { color: #ffffff; }
+
+              @media (max-width: 900px) {
+                .hdr-overlay-grid { grid-template-columns: 1fr; }
+                .hdr-overlay-nav { padding: 52px 28px 8px; }
+                .hdr-overlay-side { padding: 40px 28px 60px; border-left: none; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 40px; }
+              }
+            ` }} />
+          </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Padding de la barra superior (closed + overlay) */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .hdr-bar { padding: 24px 48px; }
+        @media (max-width: 640px) { .hdr-bar { padding: 20px 24px; } }
+      ` }} />
     </>
   );
 }

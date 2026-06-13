@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { MobileCarousel } from "@/components/ui/mobile-carousel";
 
 type VizKind = "wave" | "sketch" | "bars" | "launch" | "pulse";
 
@@ -117,65 +118,73 @@ const STYLES = `
 }
 `;
 
-/* ── Mobile static list ── */
+/* ── Mobile: carrusel deslizable (acorta el scroll) ── */
 function MobileSteps() {
-  return (
-    <div style={{ borderTop:"1px solid rgba(255,255,255,0.055)", borderBottom:"1px solid rgba(255,255,255,0.055)" }}>
-      {STEPS.map((step, i) => (
-        <motion.div
-          key={step.num}
-          initial={{ opacity:0, x:-16 }}
-          whileInView={{ opacity:1, x:0 }}
-          viewport={{ once:true }}
-          transition={{ duration:0.45, ease:[0.22,1,0.36,1], delay: i * 0.07 }}
-          style={{
-            position:"relative",
-            padding:"28px 20px 28px 36px",
-            borderBottom: i < STEPS.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
-          }}
-        >
-          {/* Left accent bar */}
-          <div style={{
-            position:"absolute", left:0, top:"16px", bottom:"16px",
-            width:"2px",
-            background:"linear-gradient(to bottom, transparent, #7C3AED 35%, #a78bfa 65%, transparent)",
-            borderRadius:"2px",
-          }} />
+  const panels = STEPS.map((step) => (
+    <div
+      key={step.num}
+      style={{
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "320px",
+        padding: "30px 26px 32px",
+        borderRadius: "22px",
+        border: "1px solid rgba(124,58,237,0.2)",
+        background:
+          "linear-gradient(165deg, rgba(124,58,237,0.1) 0%, rgba(10,9,32,0.82) 55%, rgba(10,9,32,0.92) 100%)",
+        boxShadow: "0 12px 40px rgba(0,0,0,0.32)",
+        overflow: "hidden",
+      }}
+    >
+      {/* Número fantasma */}
+      <span
+        aria-hidden="true"
+        style={{
+          position: "absolute", right: "-4px", bottom: "-22px",
+          fontFamily: "var(--font-sans)", fontWeight: 900, fontSize: "132px", lineHeight: 1,
+          color: "rgba(124,58,237,0.08)", pointerEvents: "none", userSelect: "none", zIndex: 0,
+        }}
+      >
+        {step.num}
+      </span>
 
-          {/* Número + etiqueta de tiempo */}
-          <div style={{ display:"flex", alignItems:"center", gap:"10px", margin:"0 0 12px" }}>
-            <p style={{
-              fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"10px",
-              color:"#7C3AED", letterSpacing:"3px", margin:0,
-              textTransform:"uppercase",
-            }}>
-              {step.num}
-            </p>
-            <span style={{
-              fontFamily:"var(--font-sans)", fontWeight:600, fontSize:"9px",
-              color:"#a78bfa", letterSpacing:"1px", textTransform:"uppercase",
-              border:"1px solid rgba(124,58,237,0.3)", background:"rgba(124,58,237,0.08)",
-              borderRadius:"100px", padding:"3px 9px", whiteSpace:"nowrap",
-            }}>
-              {step.tag}
-            </span>
-          </div>
+      {/* Mini-visual + número + etiqueta de tiempo */}
+      <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: "12px", marginBottom: "22px", minHeight: "30px" }}>
+        <span style={{ color: "#a78bfa", display: "flex", alignItems: "center", flexShrink: 0 }}>
+          <StepViz kind={step.viz} />
+        </span>
+        <span style={{
+          fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: "11px",
+          color: "#a78bfa", letterSpacing: "3px", margin: 0,
+        }}>
+          {step.num}
+        </span>
+        <span style={{
+          fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: "9px",
+          color: "#a78bfa", letterSpacing: "1px", textTransform: "uppercase",
+          border: "1px solid rgba(124,58,237,0.35)", background: "rgba(124,58,237,0.1)",
+          borderRadius: "100px", padding: "4px 11px", whiteSpace: "nowrap",
+        }}>
+          {step.tag}
+        </span>
+      </div>
 
-          {/* Title */}
-          <h3 style={{ fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"17px", lineHeight:1.35, margin:"0 0 10px", letterSpacing:"-0.01em" }}>
-            <span style={{ color:"rgba(255,255,255,0.9)" }}>{step.prefix}</span>
-            <span style={{ background:"#7C3AED", color:"#ffffff", padding:"1px 6px", borderRadius:"4px" }}>{step.hl}</span>
-            <span style={{ color:"rgba(255,255,255,0.9)" }}>{step.suffix}</span>
-          </h3>
+      {/* Título */}
+      <h3 style={{ position: "relative", zIndex: 1, fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: "21px", lineHeight: 1.3, margin: "0 0 14px", letterSpacing: "-0.01em" }}>
+        <span style={{ color: "rgba(255,255,255,0.92)" }}>{step.prefix}</span>
+        <span style={{ background: "#7C3AED", color: "#ffffff", padding: "1px 7px", borderRadius: "4px" }}>{step.hl}</span>
+        <span style={{ color: "rgba(255,255,255,0.92)" }}>{step.suffix}</span>
+      </h3>
 
-          {/* Description */}
-          <p style={{ fontFamily:"var(--font-sans)", fontWeight:300, fontSize:"13px", fontStyle:"italic", color:"rgba(255,255,255,0.42)", lineHeight:1.78, margin:0 }}>
-            {step.desc}
-          </p>
-        </motion.div>
-      ))}
+      {/* Descripción */}
+      <p style={{ position: "relative", zIndex: 1, fontFamily: "var(--font-sans)", fontWeight: 300, fontSize: "14px", fontStyle: "italic", color: "rgba(255,255,255,0.46)", lineHeight: 1.8, margin: 0 }}>
+        {step.desc}
+      </p>
     </div>
-  );
+  ));
+
+  return <MobileCarousel panels={panels} />;
 }
 
 // Duración de cada paso — debe coincidir con la animación .proc-bar en STYLES

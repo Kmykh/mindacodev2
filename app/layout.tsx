@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Poppins, Syne } from "next/font/google";
 import "./globals.css";
 
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-sans",
+  display: "swap"
+});
+
+// Fuente display editorial — títulos grandes del menú overlay.
+const syne = Syne({
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  variable: "--font-display",
   display: "swap"
 });
 
@@ -114,7 +122,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${poppins.variable} text-foreground antialiased`}
+        className={`${poppins.variable} ${syne.variable} text-foreground antialiased`}
       >
         <a
           href="#hero"

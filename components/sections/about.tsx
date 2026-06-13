@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { MobileCarousel } from "@/components/ui/mobile-carousel";
 
 /* ════════════════════════════════════════════
    Data
@@ -146,12 +147,77 @@ const STYLES = `
    ════════════════════════════════════════════ */
 const MANIFESTO = ["Impulsa", "Mejora", "Distínguete"] as const;
 
+/* ── Mobile: tarjeta de valor con highlight visible (sin hover) ── */
+function MobileValueCard({ v }: { v: typeof VALUES[number] }) {
+  return (
+    <div
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        minHeight: "260px",
+        padding: "40px 28px",
+        borderRadius: "20px",
+        border: "1px solid rgba(124,58,237,0.3)",
+        background:
+          "linear-gradient(160deg, rgba(124,58,237,0.12) 0%, rgba(10,9,32,0.78) 52%, rgba(10,9,32,0.9) 100%)",
+        boxShadow: "0 12px 40px rgba(0,0,0,0.3)",
+      }}
+    >
+      {/* Línea de acento superior */}
+      <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "3px", background: "linear-gradient(90deg, #7C3AED, #a78bfa)" }} />
+
+      {/* Número fantasma */}
+      <span aria-hidden="true" style={{
+        position: "absolute", right: "-6px", bottom: "-14px",
+        fontFamily: "var(--font-sans)", fontWeight: 900, fontSize: "130px", lineHeight: 1,
+        color: "rgba(124,58,237,0.1)", pointerEvents: "none", zIndex: 0, userSelect: "none",
+      }}>
+        {v.num}
+      </span>
+
+      <span style={{
+        position: "relative", zIndex: 1, display: "block",
+        color: "#7C3AED", fontFamily: "var(--font-sans)", fontWeight: 700,
+        fontSize: "12px", letterSpacing: "3px", marginBottom: "18px",
+      }}>
+        {v.num}
+      </span>
+
+      <h3 style={{
+        position: "relative", zIndex: 1, color: "#ffffff",
+        fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: "21px",
+        lineHeight: 1.3, letterSpacing: "-0.02em", margin: "0 0 14px",
+      }}>
+        {v.pre && <span>{v.pre}</span>}
+        <span style={{ background: "#7C3AED", color: "#ffffff", padding: "2px 8px", borderRadius: "4px", whiteSpace: "nowrap" }}>{v.hl}</span>
+        {v.post && <span>{v.post}</span>}
+      </h3>
+
+      <p style={{
+        position: "relative", zIndex: 1, color: "rgba(255,255,255,0.5)",
+        fontFamily: "var(--font-sans)", fontWeight: 300, fontSize: "13.5px",
+        lineHeight: 1.8, margin: 0,
+      }}>
+        {v.desc}
+      </p>
+    </div>
+  );
+}
+
 export function AboutSection() {
   const [mIdx, setMIdx] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setMIdx(i => (i + 1) % MANIFESTO.length), 2200);
     return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 900);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
   }, []);
 
   return (
@@ -303,36 +369,40 @@ export function AboutSection() {
             Principios que <span style={{ color:"#a78bfa" }}>no negociamos.</span>
           </h3>
 
-          <div className="about-vals-grid">
-            {VALUES.map((v, i) => (
-              <motion.div
-                key={i}
-                className="about-val-cell"
-                initial={{ opacity:0, y:18 }}
-                whileInView={{ opacity:1, y:0 }}
-                viewport={{ once:true }}
-                transition={{ duration:0.45, delay:i*0.1 }}
-              >
-                <span aria-hidden="true" style={{
-                  position:"absolute", right:"-6px", bottom:"-14px",
-                  fontFamily:"var(--font-sans)", fontWeight:900, fontSize:"130px", lineHeight:1,
-                  color:"rgba(124,58,237,0.09)", pointerEvents:"none", zIndex:0, userSelect:"none",
-                }}>
-                  {v.num}
-                </span>
+          {isMobile ? (
+            <MobileCarousel panels={VALUES.map((v) => <MobileValueCard key={v.num} v={v} />)} />
+          ) : (
+            <div className="about-vals-grid">
+              {VALUES.map((v, i) => (
+                <motion.div
+                  key={i}
+                  className="about-val-cell"
+                  initial={{ opacity:0, y:18 }}
+                  whileInView={{ opacity:1, y:0 }}
+                  viewport={{ once:true }}
+                  transition={{ duration:0.45, delay:i*0.1 }}
+                >
+                  <span aria-hidden="true" style={{
+                    position:"absolute", right:"-6px", bottom:"-14px",
+                    fontFamily:"var(--font-sans)", fontWeight:900, fontSize:"130px", lineHeight:1,
+                    color:"rgba(124,58,237,0.09)", pointerEvents:"none", zIndex:0, userSelect:"none",
+                  }}>
+                    {v.num}
+                  </span>
 
-                <span className="about-val-num">{v.num}</span>
+                  <span className="about-val-num">{v.num}</span>
 
-                <h3 className="about-val-title">
-                  {v.pre  && <span>{v.pre}</span>}
-                  <span className="hl">{v.hl}</span>
-                  {v.post && <span>{v.post}</span>}
-                </h3>
+                  <h3 className="about-val-title">
+                    {v.pre  && <span>{v.pre}</span>}
+                    <span className="hl">{v.hl}</span>
+                    {v.post && <span>{v.post}</span>}
+                  </h3>
 
-                <p className="about-val-desc">{v.desc}</p>
-              </motion.div>
-            ))}
-          </div>
+                  <p className="about-val-desc">{v.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </motion.div>
 
       </section>

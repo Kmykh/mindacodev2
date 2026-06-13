@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { MobileCarousel } from "@/components/ui/mobile-carousel";
 
 /* ════════════════════════════════════════════════════════
    CSS — header animations + underline
@@ -369,9 +370,135 @@ function KingBrowser() {
 }
 
 /* ════════════════════════════════════════════════════════
+   Mobile — carrusel impactante de proyectos (acorta el scroll)
+   ════════════════════════════════════════════════════════ */
+type MobileProject = {
+  name: string;
+  bg: string;
+  glow: string;
+  scale: number;
+  device: React.ReactNode;
+  tag: { text: string; textColor: string; bg: string; border: string };
+  desc: string;
+  techs: { items: string[]; textColor?: string; borderColor?: string };
+  sep: string;
+  cta: { color: string; border: string };
+  badge?: string;
+};
+
+const MOBILE_PROJECTS: MobileProject[] = [
+  {
+    name: "Vac App",
+    bg: "#0E2419",
+    glow: "rgba(56,178,96,0.12)",
+    scale: 0.5,
+    device: <VacDevices />,
+    tag: { text: "App Móvil + Web · Ganadería", textColor: "rgba(255,255,255,0.6)", bg: "rgba(255,255,255,0.06)", border: "rgba(255,255,255,0.12)" },
+    desc: "Sistema de gestión ganadera para el campo peruano. Control de vacunación, reproducción y trazabilidad de animales.",
+    techs: { items: ["Flutter", "Node.js", "AWS"] },
+    sep: "rgba(255,255,255,0.08)",
+    cta: { color: "#ffffff", border: "rgba(255,255,255,0.25)" },
+  },
+  {
+    name: "Navegaya",
+    bg: "#0D0B00",
+    glow: "rgba(234,179,8,0.12)",
+    scale: 0.5,
+    device: <NavegayaPhone />,
+    tag: { text: "App Móvil · Navegación", textColor: "rgba(234,179,8,0.75)", bg: "rgba(234,179,8,0.07)", border: "rgba(234,179,8,0.18)" },
+    desc: "App de navegación y tours para embarcaciones turísticas en Perú. Rutas, reservas y experiencias en el agua.",
+    techs: { items: ["Flutter", "Maps API", "GPS"], textColor: "rgba(234,179,8,0.55)", borderColor: "rgba(234,179,8,0.2)" },
+    sep: "rgba(234,179,8,0.2)",
+    cta: { color: "#EAB308", border: "rgba(234,179,8,0.3)" },
+    badge: "Lanzamiento 2026",
+  },
+  {
+    name: "KingReserve",
+    bg: "#130E08",
+    glow: "rgba(200,163,110,0.1)",
+    scale: 0.56,
+    device: <KingBrowser />,
+    tag: { text: "Web App · Reservas", textColor: "rgba(200,163,110,0.75)", bg: "rgba(200,163,110,0.06)", border: "rgba(200,163,110,0.18)" },
+    desc: "Plataforma web de reservas para restaurantes boutique. Gestión de mesas, calendario inteligente y confirmaciones automáticas.",
+    techs: { items: ["Next.js", "Node.js", "PostgreSQL"], textColor: "rgba(200,163,110,0.55)", borderColor: "rgba(200,163,110,0.18)" },
+    sep: "rgba(200,163,110,0.15)",
+    cta: { color: "#C8A37E", border: "rgba(200,163,110,0.28)" },
+  },
+];
+
+function MobileProjectCard({ p }: { p: MobileProject }) {
+  return (
+    <div style={{
+      display: "flex", flexDirection: "column", minHeight: "540px",
+      borderRadius: "24px", overflow: "hidden",
+      border: "1px solid rgba(255,255,255,0.08)",
+      background: p.bg,
+      boxShadow: "0 16px 50px rgba(0,0,0,0.45)",
+    }}>
+      {/* Mockup del dispositivo (escalado) */}
+      <div style={{
+        position: "relative", height: "248px", overflow: "hidden",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+      }}>
+        <div style={{
+          position: "absolute", width: "320px", height: "320px", borderRadius: "50%",
+          background: `radial-gradient(circle, ${p.glow}, transparent 68%)`, pointerEvents: "none",
+        }} />
+        <div style={{ transform: `scale(${p.scale})`, transformOrigin: "center", pointerEvents: "none" }}>
+          {p.device}
+        </div>
+      </div>
+
+      {/* Texto */}
+      <div style={{ padding: "26px 24px 30px", display: "flex", flexDirection: "column" }}>
+        <TagPill text={p.tag.text} textColor={p.tag.textColor} bg={p.tag.bg} border={p.tag.border} />
+        <h3 style={{ fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: "34px", color: "#ffffff", margin: "0 0 12px", lineHeight: 1.1 }}>
+          {p.name}
+        </h3>
+        <p style={{ fontFamily: "var(--font-sans)", fontWeight: 300, fontSize: "14px", color: "rgba(255,255,255,0.55)", lineHeight: 1.7, margin: 0 }}>
+          {p.desc}
+        </p>
+        <div style={{ width: "48px", height: "1px", background: p.sep, margin: "22px 0" }} />
+        <TechPills techs={p.techs.items} textColor={p.techs.textColor} borderColor={p.techs.borderColor} />
+        <div style={{ marginTop: "26px", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px" }}>
+          <button style={{ fontFamily: "var(--font-sans)", fontWeight: 400, fontSize: "13px", color: p.cta.color, background: "transparent", border: `1px solid ${p.cta.border}`, borderRadius: "100px", padding: "10px 24px", cursor: "pointer", letterSpacing: "0.3px" }}>
+            Ver proyecto →
+          </button>
+          {p.badge && (
+            <span style={{ fontFamily: "var(--font-sans)", fontWeight: 400, fontSize: "11px", color: "#FDE68A", background: "rgba(234,179,8,0.1)", border: "1px solid rgba(234,179,8,0.25)", borderRadius: "100px", padding: "6px 14px", letterSpacing: "0.3px" }}>
+              {p.badge}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════
    Section
    ════════════════════════════════════════════════════════ */
 export function PortfolioSection() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 900);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  if (isMobile) {
+    return (
+      <section id="portfolio" style={{ background: "#07071a", paddingBottom: "72px" }}>
+        <style dangerouslySetInnerHTML={{ __html: STYLES }} />
+        <PortfolioHeader />
+        <MobileCarousel panels={MOBILE_PROJECTS.map((p) => <MobileProjectCard key={p.name} p={p} />)} />
+      </section>
+    );
+  }
+
   return (
     <section id="portfolio" style={{ background: "#07071a" }}>
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />

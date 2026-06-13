@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { smoothScrollTo } from "@/lib/utils";
@@ -650,6 +650,25 @@ export function ServicesSection() {
       behavior: "smooth",
     });
   };
+
+  // El menú overlay puede pedir saltar a un servicio concreto.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const i = (e as CustomEvent<number>).detail;
+      if (typeof i !== "number") return;
+      // Reintenta brevemente hasta que el carrusel esté en viewport y medible.
+      let tries = 0;
+      const tick = () => {
+        const el = scrollerRef.current;
+        if (el && el.clientWidth > 0) { goTo(i); return; }
+        if (tries++ < 20) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    };
+    window.addEventListener("mc:goService", handler as EventListener);
+    return () => window.removeEventListener("mc:goService", handler as EventListener);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Índice = panel cuyo centro queda más cerca del centro visible
   const onScroll = () => {
