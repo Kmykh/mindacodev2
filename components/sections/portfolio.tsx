@@ -10,14 +10,43 @@ const STYLES = `
 @keyframes pfTagPulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 14px rgba(124,58,237,0.28)}}
 .pf-tag{animation:pfTagPulse 2.8s ease-in-out infinite}
 
+/* Flotación continua de los dispositivos 3D */
+@keyframes pfFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.pf-float{animation:pfFloat 6s ease-in-out infinite;transform-style:preserve-3d}
+
 @media(max-width:900px){
   .pf-block{flex-direction:column !important}
   .pf-side{width:100% !important;padding:40px 32px 0 !important}
   .pf-text{padding:40px 32px 48px !important}
   .pf-header-inner{flex-direction:column !important;gap:32px !important}
   .pf-index{display:none !important}
+  .pf-float{animation:none}
 }
 `;
+
+/* ════════════════════════════════════════════════════════
+   Device3D — pose 3D con perspectiva. Entra volando desde
+   afuera de la pantalla y se asienta inclinado; al hover
+   se endereza de frente. Los hijos pueden usar translateZ
+   para profundidad real entre capas.
+   ════════════════════════════════════════════════════════ */
+function Device3D({ children, from = "right" }: { children: React.ReactNode; from?: "left" | "right" }) {
+  const dir = from === "right" ? 1 : -1;
+  return (
+    <div style={{ perspective: "1300px" }}>
+      <motion.div
+        initial={{ opacity: 0, x: dir * 200, rotateY: dir * -58, rotateX: 10, scale: 0.82 }}
+        whileInView={{ opacity: 1, x: 0, rotateY: dir * -16, rotateX: 5, scale: 1 }}
+        viewport={{ once: true, amount: 0.3 }}
+        whileHover={{ rotateY: 0, rotateX: 0, scale: 1.03 }}
+        transition={{ type: "spring", stiffness: 65, damping: 16, mass: 1.1 }}
+        style={{ transformStyle: "preserve-3d" }}
+      >
+        <div className="pf-float">{children}</div>
+      </motion.div>
+    </div>
+  );
+}
 
 /* ════════════════════════════════════════════════════════
    Header — "Resultados que [hablan/venden/escalan/duran]"
@@ -228,11 +257,11 @@ function TagPill({ text, textColor, bg, border }: {
    ════════════════════════════════════════════════════════ */
 function VacDevices() {
   return (
-    <div style={{ position: "relative", width: "320px", height: "420px" }}>
+    <div style={{ position: "relative", width: "320px", height: "420px", transformStyle: "preserve-3d" }}>
       <div style={{
         position: "absolute", width: "400px", height: "400px", borderRadius: "50%",
         background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)",
-        top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 0,
+        top: "50%", left: "50%", transform: "translate(-50%,-50%) translateZ(-50px)", zIndex: 0,
       }} />
 
       {/* Mini browser — detrás */}
@@ -241,6 +270,7 @@ function VacDevices() {
         width: "220px", height: "148px", borderRadius: "10px",
         border: "1.5px solid rgba(255,255,255,0.1)", background: "rgba(0,0,0,0.4)",
         overflow: "hidden", zIndex: 1, boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+        transform: "translateZ(-14px)",
       }}>
         <div style={{ height: "26px", background: "rgba(255,255,255,0.04)", display: "flex", alignItems: "center", padding: "0 10px", gap: "5px" }}>
           {["#e05555","#e0a030","#38b260"].map((c, i) => (
@@ -259,7 +289,8 @@ function VacDevices() {
         position: "absolute", bottom: 0, right: 0, zIndex: 2,
         width: "180px", height: "348px", borderRadius: "32px",
         border: "2px solid rgba(255,255,255,0.13)", background: "rgba(0,0,0,0.45)",
-        overflow: "hidden", boxShadow: "0 16px 48px rgba(0,0,0,0.5)",
+        overflow: "hidden", boxShadow: "0 30px 70px rgba(0,0,0,0.65)",
+        transform: "translateZ(52px)",
       }}>
         <div style={{ width: "52px", height: "18px", background: "rgba(0,0,0,0.65)", borderRadius: "0 0 10px 10px", margin: "0 auto" }} />
         <div style={{ height: "calc(100% - 18px)", background: "#0A1A0E", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px" }}>
@@ -276,14 +307,15 @@ function VacDevices() {
    ════════════════════════════════════════════════════════ */
 function NavegayaPhone() {
   return (
-    <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ position: "absolute", width: "380px", height: "380px", borderRadius: "50%", background: "rgba(234,179,8,0.04)", border: "1px solid rgba(234,179,8,0.07)", zIndex: 0 }} />
-      <div style={{ position: "absolute", width: "260px", height: "260px", borderRadius: "50%", border: "1px solid rgba(234,179,8,0.05)", zIndex: 0 }} />
+    <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", transformStyle: "preserve-3d" }}>
+      <div style={{ position: "absolute", width: "380px", height: "380px", borderRadius: "50%", background: "rgba(234,179,8,0.04)", border: "1px solid rgba(234,179,8,0.07)", zIndex: 0, transform: "translateZ(-50px)" }} />
+      <div style={{ position: "absolute", width: "260px", height: "260px", borderRadius: "50%", border: "1px solid rgba(234,179,8,0.05)", zIndex: 0, transform: "translateZ(-22px)" }} />
       <div style={{
         width: "200px", height: "380px", borderRadius: "36px",
         border: "2px solid rgba(234,179,8,0.2)", background: "rgba(0,0,0,0.5)",
         overflow: "hidden", position: "relative", zIndex: 1,
-        boxShadow: "0 0 40px rgba(234,179,8,0.06)",
+        boxShadow: "0 30px 70px rgba(0,0,0,0.6), 0 0 40px rgba(234,179,8,0.08)",
+        transform: "translateZ(42px)",
       }}>
         <div style={{ width: "60px", height: "20px", background: "rgba(0,0,0,0.7)", borderRadius: "0 0 12px 12px", margin: "0 auto" }} />
         <div style={{ height: "calc(100% - 20px)", background: "#080700", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "12px" }}>

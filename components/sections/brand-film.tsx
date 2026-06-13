@@ -115,7 +115,7 @@ export function BrandFilmSection() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
-      <section style={{ background:"#07071a", padding:"80px 0" }}>
+      <section style={{ background:"transparent", padding:"80px 0" }}>
         <div className="bf-split" style={{ display:"flex", flexDirection:"row", alignItems:"stretch" }}>
 
           {/* ── LEFT: Video ── */}

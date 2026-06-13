@@ -1,6 +1,8 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { smoothScrollTo } from "@/lib/utils";
 
 /* ════════════════════════════════════════════════════════════
@@ -112,13 +114,34 @@ const STYLES = `
 /* ── Row min-height ── */
 .svc-row{min-height:360px}
 
+/* ── Carrusel de servicios ── */
+.svc-scroller{display:flex;gap:24px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:10px 5vw 10px}
+.svc-scroller::-webkit-scrollbar{display:none}
+.svc-panel{
+  flex:0 0 auto;width:min(1060px,86vw);scroll-snap-align:center;
+  border-radius:24px;border:1px solid rgba(124,58,237,0.18);
+  background:linear-gradient(165deg,rgba(124,58,237,0.09) 0%,rgba(10,9,32,0.78) 45%,rgba(10,9,32,0.86) 100%);
+  overflow:hidden;position:relative;
+  transition:border-color .3s ease,box-shadow .3s ease;
+}
+.svc-panel:hover{border-color:rgba(124,58,237,0.42);box-shadow:0 0 60px rgba(124,58,237,0.13)}
+.svc-arrow{
+  width:48px;height:48px;border-radius:50%;flex-shrink:0;
+  border:1px solid rgba(124,58,237,0.35);background:rgba(124,58,237,0.1);color:#a78bfa;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:background .25s ease,color .25s ease,border-color .25s ease,box-shadow .25s ease,opacity .25s ease;
+}
+.svc-arrow:hover:not(:disabled){background:#7C3AED;color:#ffffff;border-color:#7C3AED;box-shadow:0 0 24px rgba(124,58,237,0.45)}
+.svc-arrow:disabled{opacity:.25;cursor:default}
+.svc-progress-wrap{height:2px;margin:24px 5vw 0;background:rgba(124,58,237,0.14);border-radius:2px;overflow:hidden}
+.svc-progress{height:100%;width:100%;background:linear-gradient(90deg,#7C3AED,#a78bfa);transform:scaleX(0);transform-origin:left center;transition:transform .5s cubic-bezier(.22,1,.36,1)}
+
 /* ── Responsive ── */
 @media(max-width:1023px){
   .svc-row{flex-direction:column !important;padding:44px 24px !important;min-height:auto !important}
   .svc-frame-wrap{padding-top:14px !important;padding-left:14px !important;width:100% !important}
   .svc-frame{width:100% !important;height:200px !important}
   .svc-chip{display:none !important}
-  .svc-sep{margin:0 24px !important}
   /* Disable all CSS animations on mobile — prevents CPU/GPU jank from off-screen anims */
   .svc-td1,.svc-td2,.svc-td3,
   .svc-c1,.svc-c2,.svc-c3,.svc-c4,
@@ -489,11 +512,6 @@ const SERVICES: ServiceDef[] = [
   },
 ];
 
-const SEP_MARGINS = [
-  "0 48px","0 48px 0 200px","0 200px 0 48px","0 48px",
-  "0 120px","0 48px 0 160px","0 48px","0 48px 0 100px",
-];
-
 /* ════════════════════════════════════════════════════════════
    Question renderer
    ════════════════════════════════════════════════════════════ */
@@ -616,44 +634,93 @@ function ServiceRow({ svc, index }: { svc:ServiceDef; index:number }) {
    Section
    ════════════════════════════════════════════════════════════ */
 export function ServicesSection() {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [index, setIndex] = useState(0);
+  const total = SERVICES.length;
+
+  // Desplaza el carrusel hasta centrar el panel i
+  const goTo = (i: number) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const clamped = Math.max(0, Math.min(total - 1, i));
+    const child = el.children[clamped] as HTMLElement | undefined;
+    if (!child) return;
+    el.scrollTo({
+      left: child.offsetLeft - (el.clientWidth - child.clientWidth) / 2,
+      behavior: "smooth",
+    });
+  };
+
+  // Índice = panel cuyo centro queda más cerca del centro visible
+  const onScroll = () => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const center = el.scrollLeft + el.clientWidth / 2;
+    let best = 0, bestD = Infinity;
+    for (let i = 0; i < el.children.length; i++) {
+      const c = el.children[i] as HTMLElement;
+      const d = Math.abs(c.offsetLeft + c.clientWidth / 2 - center);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    setIndex(best);
+  };
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+
   return (
-    <section id="services" style={{ background:"#07071a" }}>
+    <section id="services" style={{ background:"transparent", paddingBottom:"96px" }}>
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
 
-      {/* Header */}
+      {/* Header + controles */}
       <div className="svc-header-pad" style={{ padding:"88px 52px 36px" }}>
-        <motion.div initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} transition={{ duration:0.5 }}>
-          <p style={{ fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"11px", color:"#7C3AED", textTransform:"uppercase", letterSpacing:"4px", margin:"0 0 16px" }}>
-            Nuestros Servicios
-          </p>
-          <h2 style={{ fontFamily:"var(--font-sans)", fontWeight:800, fontSize:"clamp(28px,3.5vw,48px)", color:"#ffffff", textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1.1, margin:"0 0 14px" }}>
-            Dinos cuál es{" "}
-            <span style={{ color:"#a78bfa", background:"rgba(124,58,237,0.12)", padding:"2px 10px", borderRadius:"8px" }}>
-              tu situación.
+        <motion.div
+          initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }}
+          viewport={{ once:true }} transition={{ duration:0.5 }}
+          style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:"24px", flexWrap:"wrap" }}
+        >
+          <div>
+            <p style={{ fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"11px", color:"#7C3AED", textTransform:"uppercase", letterSpacing:"4px", margin:"0 0 16px" }}>
+              Nuestros Servicios
+            </p>
+            <h2 style={{ fontFamily:"var(--font-sans)", fontWeight:800, fontSize:"clamp(28px,3.5vw,48px)", color:"#ffffff", textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1.1, margin:"0 0 14px" }}>
+              Dinos cuál es{" "}
+              <span style={{ color:"#a78bfa", background:"rgba(124,58,237,0.12)", padding:"2px 10px", borderRadius:"8px" }}>
+                tu situación.
+              </span>
+            </h2>
+            <p style={{ fontFamily:"var(--font-sans)", fontWeight:300, fontSize:"15px", color:"rgba(255,255,255,0.4)", lineHeight:1.65, maxWidth:"520px", margin:0 }}>
+              Cada negocio tiene su problema. Nosotros tenemos la solución exacta.
+            </p>
+          </div>
+
+          {/* Contador + flechas */}
+          <div style={{ display:"flex", alignItems:"center", gap:"16px" }}>
+            <span style={{ fontFamily:"var(--font-sans)", fontWeight:600, fontSize:"13px", color:"rgba(255,255,255,0.45)", letterSpacing:"2px" }}>
+              <span style={{ color:"#a78bfa" }}>{pad(index + 1)}</span> / {pad(total)}
             </span>
-          </h2>
-          <p style={{ fontFamily:"var(--font-sans)", fontWeight:300, fontSize:"15px", color:"rgba(255,255,255,0.4)", lineHeight:1.65, maxWidth:"520px" }}>
-            Cada negocio tiene su problema. Nosotros tenemos la solución exacta.
-          </p>
+            <button className="svc-arrow" onClick={() => goTo(index - 1)} disabled={index === 0} aria-label="Servicio anterior">
+              <ArrowLeft size={20} />
+            </button>
+            <button className="svc-arrow" onClick={() => goTo(index + 1)} disabled={index === total - 1} aria-label="Siguiente servicio">
+              <ArrowRight size={20} />
+            </button>
+          </div>
         </motion.div>
       </div>
 
-      {/* Rows */}
-      {SERVICES.map((svc, i) => (
-        <div key={svc.name}>
-          <motion.div
-            initial={{ opacity:0, y:20 }}
-            whileInView={{ opacity:1, y:0 }}
-            viewport={{ once:true, margin:"-20px" }}
-            transition={{ duration:0.45, ease:[0.22,1,0.36,1] }}
-          >
+      {/* Carrusel — flechas en desktop, swipe en móvil */}
+      <div ref={scrollerRef} className="svc-scroller" onScroll={onScroll}>
+        {SERVICES.map((svc, i) => (
+          <div key={svc.name} className="svc-panel">
             <ServiceRow svc={svc} index={i} />
-          </motion.div>
-          {i < SERVICES.length - 1 && (
-            <div className="svc-sep" style={{ height:"1px", background:"rgba(124,58,237,0.12)", margin: SEP_MARGINS[i] ?? "0 48px" }} />
-          )}
-        </div>
-      ))}
+          </div>
+        ))}
+      </div>
+
+      {/* Progreso */}
+      <div className="svc-progress-wrap">
+        <div className="svc-progress" style={{ transform:`scaleX(${(index + 1) / total})` }} />
+      </div>
     </section>
   );
 }

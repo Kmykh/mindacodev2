@@ -30,12 +30,16 @@ export function Hero3DScene({ className }: { className?: string }) {
         powerPreference: "high-performance",
       });
       renderer.setClearColor(0x000000, 0);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+      // HD en desktop (hasta 2x), contenido en móvil para no castigar la GPU
+      const isSmall = window.innerWidth < 1024;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, isSmall ? 1.5 : 2));
 
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
       camera.position.z = 5.5;
 
+      // En desktop la galaxia vive a la derecha del texto del hero (posición fija).
+      // En móvil queda centrada.
       const setSize = () => {
         const w = mount.clientWidth;
         const h = mount.clientHeight;
@@ -43,13 +47,14 @@ export function Hero3DScene({ className }: { className?: string }) {
         renderer.setSize(w, h, false);
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
+        group.position.x = window.innerWidth >= 1024 ? 1.4 : 0;
       };
 
       const group = new THREE.Group();
       scene.add(group);
 
       // ── Textura de estrella: círculo con halo suave (evita cuadrados)
-      const starSize = 64;
+      const starSize = 128;
       const starCanvas = document.createElement("canvas");
       starCanvas.width = starSize; starCanvas.height = starSize;
       const ctx = starCanvas.getContext("2d")!;
@@ -74,19 +79,19 @@ export function Hero3DScene({ className }: { className?: string }) {
         g.addColorStop(0.55,"rgba(255,255,255,0.18)");
         g.addColorStop(1,   "rgba(255,255,255,0)");
         ctx.fillStyle = g;
-        ctx.fillRect(-cx, -1.5, starSize, 3);
+        ctx.fillRect(-cx, -2.5, starSize, 5);
         ctx.restore();
       };
       streak(0); streak(Math.PI / 2);
       const starTex = new THREE.CanvasTexture(starCanvas);
 
       // ── Galaxia espiral — partículas estáticas en GPU, solo rota (muy barato)
-      const GCOUNT  = 7000;
+      const GCOUNT  = isSmall ? 4500 : 12000;
       const RADIUS  = 2.8;
       const BRANCHES = 4;
       const SPIN     = 1.4;
-      const RAND     = 0.34;
-      const RAND_POW = 2.9;
+      const RAND     = 0.3;   // brazos más definidos
+      const RAND_POW = 3.1;
 
       const gPos = new Float32Array(GCOUNT * 3);
       const gCol = new Float32Array(GCOUNT * 3);
@@ -118,7 +123,7 @@ export function Hero3DScene({ className }: { className?: string }) {
       gGeo.setAttribute("position", new THREE.BufferAttribute(gPos, 3));
       gGeo.setAttribute("color",    new THREE.BufferAttribute(gCol, 3));
       const gMat = new THREE.PointsMaterial({
-        size: 0.055,
+        size: isSmall ? 0.055 : 0.042, // más partículas y más finas = look HD
         map: starTex,
         vertexColors: true,
         transparent: true,
@@ -131,7 +136,7 @@ export function Hero3DScene({ className }: { className?: string }) {
       const galaxy = new THREE.Points(gGeo, gMat);
 
       // Núcleo brillante (sprite con gradiente radial violeta)
-      const coreSize = 128;
+      const coreSize = 256;
       const coreCanvas = document.createElement("canvas");
       coreCanvas.width = coreSize; coreCanvas.height = coreSize;
       const cctx = coreCanvas.getContext("2d")!;
@@ -205,6 +210,16 @@ export function Hero3DScene({ className }: { className?: string }) {
       const particlesMesh = new THREE.Points(pGeo, pMat);
       group.add(particlesMesh);
 
+      // Progreso de scroll dentro del hero (0 → 1 en la primera pantalla):
+      // acerca e inclina la galaxia levemente mientras el hero sale de pantalla
+      let heroT = 0;
+      const onScroll = () => {
+        const h = window.innerHeight || 1;
+        heroT = Math.min(Math.max(window.scrollY / (h * 0.9), 0), 1);
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+
       const ro = new ResizeObserver(setSize);
       ro.observe(mount);
       // window resize catches breakpoint crossings (hidden lg:flex) that ResizeObserver may miss
@@ -217,20 +232,27 @@ export function Hero3DScene({ className }: { className?: string }) {
 
       const clock = new THREE.Clock();
       let rafId = 0;
+      let prevEl = 0;
 
       const loop = () => {
         if (disposed) return;
         rafId = requestAnimationFrame(loop);
         if (document.hidden) return; // no renderizar si la pestaña no es visible
         const el = clock.getElapsedTime();
+        const dt = Math.min(el - prevEl, 0.1); // clamp por si la pestaña estuvo oculta
+        prevEl = el;
 
-        // ── Rotación de la galaxia sobre su eje + balanceo lento del plano
-        galaxy.rotation.y = el * 0.07;
+        // ── Zoom suave mientras el hero sale de pantalla
+        const camTarget = 5.5 - heroT * 1.4;
+        camera.position.z += (camTarget - camera.position.z) * 0.06;
+
+        // ── Rotación acumulativa + balanceo lento del plano
+        galaxy.rotation.y += dt * (0.07 + heroT * 0.06);
         galaxyTilt.rotation.z = 0.22 + Math.sin(el * 0.18) * 0.05;
-        galaxyTilt.rotation.x = -0.62 + Math.cos(el * 0.14) * 0.04;
+        galaxyTilt.rotation.x = -0.62 + Math.cos(el * 0.14) * 0.04 + heroT * 0.18;
 
         // Pulso sutil del núcleo
-        const pulse = 1 + Math.sin(el * 0.7) * 0.06;
+        const pulse = (1 + Math.sin(el * 0.7) * 0.06) * (1 + heroT * 0.15);
         core.scale.set(2.1 * pulse, 2.1 * pulse, 1);
         gMat.opacity = 0.9 + Math.sin(el * 0.5) * 0.08;
 
@@ -250,6 +272,7 @@ export function Hero3DScene({ className }: { className?: string }) {
 
       disposeHandle = () => {
         cancelAnimationFrame(rafId);
+        window.removeEventListener("scroll", onScroll);
         window.removeEventListener("resize", setSize);
         mq.removeEventListener("change", onMQ);
         ro.disconnect();
@@ -277,9 +300,9 @@ export function Hero3DScene({ className }: { className?: string }) {
       style={{
         // Vignette — desvanece los bordes del canvas suavemente
         WebkitMaskImage:
-          "radial-gradient(ellipse 80% 78% at 52% 50%, black 30%, rgba(0,0,0,0.6) 58%, transparent 82%)",
+          "radial-gradient(ellipse 90% 85% at 50% 50%, black 38%, rgba(0,0,0,0.6) 64%, transparent 88%)",
         maskImage:
-          "radial-gradient(ellipse 80% 78% at 52% 50%, black 30%, rgba(0,0,0,0.6) 58%, transparent 82%)",
+          "radial-gradient(ellipse 90% 85% at 50% 50%, black 38%, rgba(0,0,0,0.6) 64%, transparent 88%)",
       }}
     />
   );

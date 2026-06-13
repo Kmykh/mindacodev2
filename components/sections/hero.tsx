@@ -164,6 +164,11 @@ export function Hero() {
     >
       <HeroBackground />
 
+      {/* Galaxia 3D — fondo del hero, detrás del texto */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <Hero3DScene className="h-full w-full" />
+      </div>
+
       <div className="relative z-10 mx-auto w-full max-w-7xl">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[56fr_44fr]">
 
@@ -259,15 +264,8 @@ export function Hero() {
             </div>
           </motion.div>
 
-          {/* ── Right: Three.js ── */}
-          <motion.div
-            className="relative hidden lg:flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.6, delay: 1.0, ease: "easeOut" }}
-          >
-            <Hero3DScene className="h-[540px] w-full" />
-          </motion.div>
+          {/* La galaxia 3D ahora es fondo fijo de toda la página (ver app/page.tsx);
+              esta columna queda libre para que se vea a la derecha del texto. */}
 
         </div>
       </div>

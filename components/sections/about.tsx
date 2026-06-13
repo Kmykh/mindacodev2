@@ -35,23 +35,38 @@ const STYLES = `
 }
 .tag-hl-bg { animation: hlBgCycle 2.4s ease-in-out infinite; }
 
-/* ── Values 2×2 grid ── */
+/* ── Values 2×2 grid — tarjetas con borde, glow y lift ── */
 .about-vals-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  background: rgba(255,255,255,0.06);
-  border-radius: 2px;
+  gap: 18px;
 }
 .about-val-cell {
-  background: #07071a;
+  background: linear-gradient(160deg, rgba(124,58,237,0.07) 0%, rgba(10,9,32,0.6) 50%, rgba(10,9,32,0.72) 100%);
+  border: 1px solid rgba(124,58,237,0.14);
+  border-radius: 20px;
   padding: 52px 48px;
   position: relative;
   overflow: hidden;
   cursor: default;
-  transition: background 0.45s ease;
+  transition: border-color 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease;
 }
-.about-val-cell:hover { background: rgba(124,58,237,0.04); }
+.about-val-cell:hover {
+  border-color: rgba(124,58,237,0.45);
+  transform: translateY(-6px);
+  box-shadow: 0 18px 50px rgba(124,58,237,0.15);
+}
+/* Línea de acento superior — se extiende al hacer hover */
+.about-val-cell::before {
+  content: '';
+  position: absolute; top: 0; left: 0;
+  width: 52px; height: 3px;
+  background: linear-gradient(90deg, #7C3AED, #a78bfa);
+  border-radius: 0 0 4px 0;
+  opacity: 0.5;
+  transition: width 0.45s cubic-bezier(0.22,1,0.36,1), opacity 0.45s ease;
+}
+.about-val-cell:hover::before { width: 100%; opacity: 1; }
 
 .about-val-num {
   display: block;
@@ -142,7 +157,7 @@ export function AboutSection() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
-      <section id="about" style={{ background:"#07071a", overflow:"hidden" }}>
+      <section id="about" style={{ background:"transparent", overflow:"hidden" }}>
 
         {/* ══ ZONA SUPERIOR — SPLIT ══ */}
         <div className="about-split" style={{ display:"flex" }}>
@@ -281,9 +296,12 @@ export function AboutSection() {
           transition={{ duration:0.5 }}
           style={{ padding:"80px 56px 100px" }}
         >
-          <p style={{ fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"10px", color:"rgba(124,58,237,0.5)", textTransform:"uppercase", letterSpacing:"4px", margin:"0 0 48px" }}>
+          <p style={{ fontFamily:"var(--font-sans)", fontWeight:700, fontSize:"10px", color:"rgba(124,58,237,0.6)", textTransform:"uppercase", letterSpacing:"4px", margin:"0 0 16px" }}>
             Esto nos define
           </p>
+          <h3 style={{ fontFamily:"var(--font-sans)", fontWeight:800, fontSize:"clamp(24px,2.6vw,38px)", color:"#ffffff", letterSpacing:"-0.02em", lineHeight:1.15, margin:"0 0 48px" }}>
+            Principios que <span style={{ color:"#a78bfa" }}>no negociamos.</span>
+          </h3>
 
           <div className="about-vals-grid">
             {VALUES.map((v, i) => (
@@ -298,7 +316,7 @@ export function AboutSection() {
                 <span aria-hidden="true" style={{
                   position:"absolute", right:"-6px", bottom:"-14px",
                   fontFamily:"var(--font-sans)", fontWeight:900, fontSize:"130px", lineHeight:1,
-                  color:"rgba(124,58,237,0.05)", pointerEvents:"none", zIndex:0, userSelect:"none",
+                  color:"rgba(124,58,237,0.09)", pointerEvents:"none", zIndex:0, userSelect:"none",
                 }}>
                   {v.num}
                 </span>
