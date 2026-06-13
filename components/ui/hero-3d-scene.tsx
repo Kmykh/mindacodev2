@@ -80,29 +80,86 @@ export function Hero3DScene({ className }: { className?: string }) {
       streak(0); streak(Math.PI / 2);
       const starTex = new THREE.CanvasTexture(starCanvas);
 
-      // ── TorusKnot — segmentos reducidos para mejor perf
-      const torusKnotGeo = new THREE.TorusKnotGeometry(1.3, 0.38, 160, 12, 2, 3);
-      const torusKnotMat = new THREE.MeshBasicMaterial({
-        color: 0x8b5cf6,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.38,
-      });
-      const torusKnot = new THREE.Mesh(torusKnotGeo, torusKnotMat);
-      group.add(torusKnot);
+      // ── Galaxia espiral — partículas estáticas en GPU, solo rota (muy barato)
+      const GCOUNT  = 7000;
+      const RADIUS  = 2.8;
+      const BRANCHES = 4;
+      const SPIN     = 1.4;
+      const RAND     = 0.34;
+      const RAND_POW = 2.9;
 
-      // Posiciones originales y fases precalculadas (evita multiplicaciones en el loop)
-      const posArr   = torusKnotGeo.attributes.position.array as Float32Array;
-      const nv       = posArr.length / 3;
-      const origPos  = new Float32Array(posArr);          // copia inmutable
-      const phases   = new Float32Array(nv * 3);          // cache de fases
+      const gPos = new Float32Array(GCOUNT * 3);
+      const gCol = new Float32Array(GCOUNT * 3);
+      const cInner = new THREE.Color(0xd8ccff); // núcleo violeta claro
+      const cMidG  = new THREE.Color(0x8b5cf6); // violeta marca
+      const cOuter = new THREE.Color(0x3b82f6); // azul borde
 
-      for (let i = 0; i < nv; i++) {
-        const fi        = i / nv;
-        phases[i * 3]   = fi * Math.PI * 14;   // onda principal
-        phases[i * 3 + 1] = fi * Math.PI * 22; // ripple rápido
-        phases[i * 3 + 2] = fi * Math.PI * 7;  // ondulación lenta
+      for (let i = 0; i < GCOUNT; i++) {
+        // más densidad hacia el centro
+        const r = Math.pow(Math.random(), 1.5) * RADIUS;
+        const branchAngle = ((i % BRANCHES) / BRANCHES) * Math.PI * 2;
+        const spinAngle = r * SPIN;
+
+        const rnd = () =>
+          Math.pow(Math.random(), RAND_POW) * (Math.random() < 0.5 ? 1 : -1) * RAND * (0.4 + r);
+
+        gPos[i*3]   = Math.cos(branchAngle + spinAngle) * r + rnd();
+        gPos[i*3+1] = rnd() * 0.45; // disco aplanado
+        gPos[i*3+2] = Math.sin(branchAngle + spinAngle) * r + rnd();
+
+        const t = r / RADIUS;
+        const c = t < 0.45
+          ? cInner.clone().lerp(cMidG, t / 0.45)
+          : cMidG.clone().lerp(cOuter, (t - 0.45) / 0.55);
+        gCol[i*3] = c.r; gCol[i*3+1] = c.g; gCol[i*3+2] = c.b;
       }
+
+      const gGeo = new THREE.BufferGeometry();
+      gGeo.setAttribute("position", new THREE.BufferAttribute(gPos, 3));
+      gGeo.setAttribute("color",    new THREE.BufferAttribute(gCol, 3));
+      const gMat = new THREE.PointsMaterial({
+        size: 0.055,
+        map: starTex,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.95,
+        sizeAttenuation: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        alphaTest: 0.004,
+      });
+      const galaxy = new THREE.Points(gGeo, gMat);
+
+      // Núcleo brillante (sprite con gradiente radial violeta)
+      const coreSize = 128;
+      const coreCanvas = document.createElement("canvas");
+      coreCanvas.width = coreSize; coreCanvas.height = coreSize;
+      const cctx = coreCanvas.getContext("2d")!;
+      const ccx = coreSize / 2;
+      const coreGrad = cctx.createRadialGradient(ccx, ccx, 0, ccx, ccx, ccx);
+      coreGrad.addColorStop(0,    "rgba(245,240,255,0.95)");
+      coreGrad.addColorStop(0.18, "rgba(200,180,255,0.55)");
+      coreGrad.addColorStop(0.45, "rgba(139,92,246,0.22)");
+      coreGrad.addColorStop(1,    "rgba(139,92,246,0)");
+      cctx.fillStyle = coreGrad;
+      cctx.fillRect(0, 0, coreSize, coreSize);
+      const coreTex = new THREE.CanvasTexture(coreCanvas);
+      const coreMat = new THREE.SpriteMaterial({
+        map: coreTex,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const core = new THREE.Sprite(coreMat);
+      core.scale.set(2.1, 2.1, 1);
+
+      // Inclinación tipo vista 3/4 para que se aprecie la espiral
+      const galaxyTilt = new THREE.Group();
+      galaxyTilt.rotation.x = -0.62;
+      galaxyTilt.rotation.z = 0.22;
+      galaxyTilt.add(galaxy);
+      galaxyTilt.add(core);
+      group.add(galaxyTilt);
 
       // ── Partículas
       const PCOUNT   = 180;
@@ -148,15 +205,6 @@ export function Hero3DScene({ className }: { className?: string }) {
       const particlesMesh = new THREE.Points(pGeo, pMat);
       group.add(particlesMesh);
 
-      // Mouse parallax
-      let targetRotY = 0, targetRotX = 0;
-      const onMouseMove = (e: MouseEvent) => {
-        const rect = mount.getBoundingClientRect();
-        targetRotY = ((e.clientX - rect.left) / mount.clientWidth  - 0.5) * 0.5;
-        targetRotX = -((e.clientY - rect.top)  / mount.clientHeight - 0.5) * 0.35;
-      };
-      document.addEventListener("mousemove", onMouseMove);
-
       const ro = new ResizeObserver(setSize);
       ro.observe(mount);
       // window resize catches breakpoint crossings (hidden lg:flex) that ResizeObserver may miss
@@ -176,24 +224,15 @@ export function Hero3DScene({ className }: { className?: string }) {
         if (document.hidden) return; // no renderizar si la pestaña no es visible
         const el = clock.getElapsedTime();
 
-        // ── Worm displacement — fases precalculadas, amplitudes optimizadas
-        for (let i = 0; i < nv; i++) {
-          const ox = origPos[i*3], oy = origPos[i*3+1], oz = origPos[i*3+2];
-          const p1 = phases[i*3], p2 = phases[i*3+1], p3 = phases[i*3+2];
+        // ── Rotación de la galaxia sobre su eje + balanceo lento del plano
+        galaxy.rotation.y = el * 0.07;
+        galaxyTilt.rotation.z = 0.22 + Math.sin(el * 0.18) * 0.05;
+        galaxyTilt.rotation.x = -0.62 + Math.cos(el * 0.14) * 0.04;
 
-          posArr[i*3]   = ox + Math.sin(el*1.3+p1)*0.16 + Math.cos(el*0.6+p2)*0.08;
-          posArr[i*3+1] = oy + Math.cos(el*1.0+p1*0.9)*0.15 + Math.sin(el*1.7+p3)*0.06;
-          posArr[i*3+2] = oz + Math.sin(el*0.8+p2*0.7)*0.13 + Math.cos(el*1.4+p1*0.5)*0.07;
-        }
-        torusKnotGeo.attributes.position.needsUpdate = true;
-
-        // Respiración de opacidad
-        torusKnotMat.opacity = 0.32 + Math.sin(el * 0.5) * 0.09;
-
-        // Rotación global suave
-        torusKnot.rotation.x = el * 0.055;
-        torusKnot.rotation.y = el * 0.085;
-        torusKnot.rotation.z = el * 0.035;
+        // Pulso sutil del núcleo
+        const pulse = 1 + Math.sin(el * 0.7) * 0.06;
+        core.scale.set(2.1 * pulse, 2.1 * pulse, 1);
+        gMat.opacity = 0.9 + Math.sin(el * 0.5) * 0.08;
 
         // Partículas — oscilación acotada (sin acumulación de drift)
         const pa = pGeo.attributes.position.array as Float32Array;
@@ -204,10 +243,6 @@ export function Hero3DScene({ className }: { className?: string }) {
         }
         pGeo.attributes.position.needsUpdate = true;
 
-        // Parallax suave
-        group.rotation.y += (targetRotY - group.rotation.y) * 0.04;
-        group.rotation.x += (targetRotX - group.rotation.x) * 0.04;
-
         renderer.render(scene, camera);
       };
 
@@ -215,11 +250,11 @@ export function Hero3DScene({ className }: { className?: string }) {
 
       disposeHandle = () => {
         cancelAnimationFrame(rafId);
-        document.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("resize", setSize);
         mq.removeEventListener("change", onMQ);
         ro.disconnect();
-        torusKnotGeo.dispose(); torusKnotMat.dispose();
+        gGeo.dispose(); gMat.dispose();
+        coreTex.dispose(); coreMat.dispose();
         pGeo.dispose(); pMat.dispose(); starTex.dispose();
         renderer.dispose();
         if (mount.contains(canvas)) mount.removeChild(canvas);
